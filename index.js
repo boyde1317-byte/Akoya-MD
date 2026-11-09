@@ -243,6 +243,24 @@ async function forgetSession(dir = 'session') {
     recursive: true
   });
 }
+/**
+ * Credentials left behind by an unfinished pairing have registered === false, and
+ * WhatsApp rejects them the moment they are presented (a 401 a second into boot).
+ * They can never be completed later, so clear them and start a clean handshake.
+ */
+async function discardUnpairedSession(dir = 'session') {
+  const file = path.join(dir, 'creds.json');
+  let creds;
+  try {
+    creds = JSON.parse(await fs.promises.readFile(file, 'utf8'));
+  } catch (_) {
+    return false;
+  }
+  if (creds && creds.registered) return false;
+  await forgetSession(dir);
+  log.warn('Discarded an unfinished pairing session — the bot will pair from scratch');
+  return true;
+}
 async function requestPairCode(sock, phone) {
   const digits = String(phone || '').replace(/[^0-9]/g, '');
   if (digits.length < 7 || digits.length > 15) throw new Error('That number is missing its country code.');
@@ -577,6 +595,7 @@ async function startingBot() {
       stream: 'store'
     })
   });
+  await discardUnpairedSession('session');
   const {
     state,
     saveCreds
@@ -680,6 +699,13 @@ async function startingBot() {
           // WhatsApp refused the pairing attempt itself: wrong code, or the code
           // had already expired. Nothing is linked, so reopen the socket and let
           // the page hand out a new code instead of leaving the bot dead.
+          const pendingPairing = !!(webPair.getState() || {}).phone;
+          if (!pendingPairing) {
+            // Nothing was being paired, so reopening cannot help: this is a bad
+            // stored handshake, not a mistyped code.
+            log.error('Connection refused while unpaired — clear the session and restart the bot');
+            return;
+          }
           if (pairingRestarts < MAX_PAIRING_RESTARTS) {
             pairingRestarts += 1;
             log.warn(`Pairing attempt refused (code not accepted) — reopening the socket (${pairingRestarts}/${MAX_PAIRING_RESTARTS})`);
