@@ -7,7 +7,8 @@ const {
   runtime
 } = require('../library/function');
 const {
-  generateWAMessageFromContent
+  generateWAMessageFromContent,
+  prepareWAMessageMedia
 } = require('@adiwajshing/baileys');
 const owners = JSON.parse(fs.readFileSync(path.join(__dirname, '../library/database/owner.json'), 'utf8'));
 const premium = JSON.parse(fs.readFileSync(path.join(__dirname, '../library/database/premium.json'), 'utf8'));
@@ -22,11 +23,11 @@ const getMenuImage = () => {
   if (!menuImagePromise) {
     // 720px: the location card thumbnail used to be rendered from a 300px
     // downscale of a 1024px source, which is where the softness came from.
-    menuImagePromise = sharp(path.join(__dirname, '../media/thum.jpg')).resize(720, 720, {
+    menuImagePromise = sharp(path.join(__dirname, '../media/thum.jpg')).resize(1024, 1024, {
       fit: 'cover',
       position: 'centre'
     }).jpeg({
-      quality: 88,
+      quality: 90,
       chromaSubsampling: '4:4:4'
     }).toBuffer();
   }
@@ -44,6 +45,41 @@ const getMenuDate = () => {
   }).formatToParts(new Date());
   const getPart = type => parts.find(part => part.type === type)?.value || '';
   return `${getPart('weekday')}, ${getPart('day')} - ${getPart('month')} - ${getPart('year')}`;
+};
+/**
+ * Every menu used to declare its header as a locationMessage at 0,0, which is a
+ * point in the Atlantic: WhatsApp rendered an empty map tile there and dropped the
+ * artwork, so the menu looked like a broken map. An uploaded image header shows the
+ * real artwork instead.
+ */
+const MENU_HEADER_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/jpg']);
+const menuHeader = async (client, thumb, date) => {
+  try {
+    if (!thumb) return {};
+    const media = await prepareWAMessageMedia({
+      image: thumb,
+      width: 1024,
+      height: 1024
+    }, {
+      upload: client.waUploadToServer
+    });
+    const imageMessage = media && media.imageMessage;
+    if (!imageMessage || !MENU_HEADER_IMAGE_TYPES.has(String(imageMessage.mimetype || ''))) return {};
+    return {
+      headerType: 4,
+      header: {
+        hasMediaAttachment: true,
+        // The location card used to show the bot name and the date; keep them.
+        title: String(global.botname || 'Akoya-MD'),
+        subtitle: date ? String(date) : undefined,
+        imageMessage
+      }
+    };
+  } catch (error) {
+    // A menu must still arrive if the upload fails: fall back to a text header.
+    console.error('[menu] image header failed:', error && error.message);
+    return {};
+  }
 };
 const getPrefix = m => {
   const body = typeof m?.body === 'string' && m.body ? m.body : m?.text || '';
@@ -104,13 +140,7 @@ async function menu(client, m, smsg, store, args) {
 └╼ *𝗌𝗍𝖺𝗍𝗎𝗌:* ${statusUser}`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: menuText,
       footerText: anu,
       buttons: [{
@@ -496,13 +526,7 @@ async function allmenu(client, m, smsg, store, args) {
 `;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -673,13 +697,7 @@ async function ownermenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -832,13 +850,7 @@ async function jadibotmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -992,13 +1004,7 @@ async function paymentmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1162,13 +1168,7 @@ async function aimenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1338,13 +1338,7 @@ async function downloadmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1502,13 +1496,7 @@ async function stickermenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1676,13 +1664,7 @@ async function imagemenu(client, m, smsg, store, args) {
 `;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1863,13 +1845,7 @@ async function makermenu(client, m, smsg, store, args) {
 `;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2035,13 +2011,7 @@ async function toolsmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2203,13 +2173,7 @@ async function groupmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2374,13 +2338,7 @@ async function jpmmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2538,13 +2496,7 @@ async function stalkmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2705,13 +2657,7 @@ async function searchmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2867,13 +2813,7 @@ async function randommenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3028,13 +2968,7 @@ async function storemenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3195,13 +3129,7 @@ async function funmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3369,13 +3297,7 @@ async function gamemenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3523,13 +3445,7 @@ async function quotemenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3678,13 +3594,7 @@ async function utilitymenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      locationMessage: {
-        degreesLatitude: 0,
-        degreesLongitude: 0,
-        name: `${global.botname}`,
-        address: `📍${date}`,
-        jpegThumbnail: thumb
-      },
+      ...(await menuHeader(client, thumb, date)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3810,6 +3720,7 @@ async function utilitymenu(client, m, smsg, store, args) {
 }
 const paymenu = paymentmenu;
 module.exports = {
+  menuHeader,
   menu,
   allmenu,
   ownermenu,
