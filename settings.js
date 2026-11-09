@@ -14,7 +14,10 @@ global.packname = 'Sticker by - Akoya-MD';
 global.botname = 'Akoya-MD';
 global.botname2 = 'akoya-MD';
 global.maxJadibot = 20;
-global.pair = ""; // optional custom 8-character code (A-Z, 0-9); empty = WhatsApp generates one
+// Custom pairing code. WhatsApp only accepts exactly 8 characters (A-Z, 0-9), so
+// a shorter wish is padded with 1s: "akoyamd" ships as AKOYAMD1. Leave it empty
+// to let WhatsApp generate a random code instead.
+global.pair = "akoyamd";
 
 // Settings Link
 global.linkOwner = "https://wa.me/moonson3";

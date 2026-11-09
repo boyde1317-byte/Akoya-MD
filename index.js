@@ -217,22 +217,42 @@ let currentSock = null;
 let reconnecting = false;
 let reconnectTimer = null;
 let reconnectAttempt = 0;
+// A refused pairing attempt (bad or expired code) is not a dead session: the
+// socket is reopened so the page can issue a fresh code, a bounded number of times.
+let pairingRestarts = 0;
+const MAX_PAIRING_RESTARTS = 5;
 
 /// ───────── [ 𝖶𝖾𝖻 𝖯𝖺𝗂𝗋𝗂𝗇𝗀 : 𝗌𝗍𝖺𝗍𝖾 𝖻𝗋𝗂𝖽𝗀𝖾 ] ───────── ///
 // WhatsApp only accepts a custom code that is exactly 8 chars A-Z / 0-9.
-// global.pair is kept as the readable password; it is only handed over when
-// it fits, otherwise WhatsApp generates the code (which the page shows anyway).
+// global.pair is the readable wish ("akoyamd"); a short one is PADDED with 1s so
+// the brand code still ships. Handing the job back to WhatsApp here is what used
+// to make the page show a random code the user never asked for.
 const customPairCode = () => {
   const raw = String(global.pair || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-  return /^[A-Z0-9]{8}$/.test(raw) ? raw : undefined;
+  if (!raw) return undefined;
+  return raw.length >= 8 ? raw.slice(0, 8) : raw + '1'.repeat(8 - raw.length);
 };
+// A logged-out session can never be reused, so a stale one on the volume only
+// makes every later boot fail the same way. Clearing it lets the bot pair again.
+async function forgetSession(dir = 'session') {
+  await fs.promises.rm(dir, {
+    recursive: true,
+    force: true
+  });
+  await fs.promises.mkdir(dir, {
+    recursive: true
+  });
+}
 async function requestPairCode(sock, phone) {
   const digits = String(phone || '').replace(/[^0-9]/g, '');
   if (digits.length < 7 || digits.length > 15) throw new Error('That number is missing its country code.');
   const code = await sock.requestPairingCode(digits, customPairCode());
   return String(code || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
 }
-webPair.configure(global.webPair || {});
+webPair.configure({
+  ...(global.webPair || {}),
+  customCode: customPairCode()
+});
 webPair.setSnapshot(() => {
   const sock = currentSock;
   const creds = sock && sock.authState && sock.authState.creds;
@@ -648,12 +668,37 @@ async function startingBot() {
     if (connection === 'close') {
       if (currentSock === client) currentSock = null;
       const statusCode = lastDisconnect?.error?.output?.statusCode;
-      webPair.markDisconnected(statusCode);
+      const wasPaired = !!(client.authState && client.authState.creds && client.authState.creds.registered);
+      webPair.markDisconnected(statusCode, {
+        paired: wasPaired
+      });
       if (statusCode === DisconnectReason.loggedOut) {
         reconnectAttempt = 0;
         reconnecting = false;
         jadibotManager.setRuntime(null, commandHandler);
-        log.warn('Session logged out, reconnect cancelled');
+        if (!wasPaired) {
+          // WhatsApp refused the pairing attempt itself: wrong code, or the code
+          // had already expired. Nothing is linked, so reopen the socket and let
+          // the page hand out a new code instead of leaving the bot dead.
+          if (pairingRestarts < MAX_PAIRING_RESTARTS) {
+            pairingRestarts += 1;
+            log.warn(`Pairing attempt refused (code not accepted) — reopening the socket (${pairingRestarts}/${MAX_PAIRING_RESTARTS})`);
+            setTimeout(() => {
+              startingBot().catch(error => log.error('Reopening the pairing socket failed', error));
+            }, 1200).unref?.();
+          } else {
+            log.error('WhatsApp refused too many pairing attempts — wait a few minutes, then restart the bot');
+          }
+          return;
+        }
+        // The device was removed on the phone, so the stored credentials are
+        // worthless: clear them and go back to the pairing screen.
+        log.warn('Session logged out on the phone — clearing it so the bot can pair again');
+        forgetSession().then(() => {
+          setTimeout(() => {
+            startingBot().catch(error => log.error('Re-pairing start failed', error));
+          }, 1500);
+        }).catch(error => log.error('Could not clear the logged-out session', error));
         return;
       }
       if (reconnecting) return;
@@ -677,6 +722,7 @@ async function startingBot() {
     } else if (connection == 'open') {
       reconnectAttempt = 0;
       reconnecting = false;
+      pairingRestarts = 0;
       webPair.markLinked({
         jid: client.user?.id || null,
         name: client.user?.name || null
@@ -850,8 +896,12 @@ ${global.linkSaluran}` : author !== n ? `@${author.split("@")[0]} telah *menamba
 if (webPair.isEnabled()) {
   const pairUrl = webPair.start();
   if (pairUrl) log.info(`Pairing page ${pairUrl}`);
-  if (String(global.pair || '').trim() && !customPairCode()) {
-    log.warn('global.pair is not 8 characters (A-Z, 0-9) — WhatsApp will generate the code instead');
+  const effectivePair = customPairCode();
+  if (effectivePair) {
+    const wished = String(global.pair || '').trim();
+    log.info(wished.toUpperCase() === effectivePair
+      ? `Custom pairing code: ${effectivePair}`
+      : `Custom pairing code: ${effectivePair} (from "${wished}" — WhatsApp requires exactly 8 characters)`);
   }
 }
 startingBot();

@@ -86,6 +86,7 @@ function configure(patch = {}) {
   next.host = String(next.host || DEFAULTS.host);
   next.key = String(next.key || '');
   next.codeWindowMs = Number(next.codeWindowMs) || DEFAULTS.codeWindowMs;
+  next.customCode = next.customCode ? String(next.customCode).toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
   next.maxRotations = Number.isFinite(next.maxRotations) ? next.maxRotations : DEFAULTS.maxRotations;
   cfg = next;
   return cfg;
@@ -126,15 +127,24 @@ function markLinked(info = {}) {
   };
 }
 
-function markDisconnected(statusCode) {
+function markDisconnected(statusCode, opts = {}) {
   state.code = null;
   state.expiresAt = null;
+  const paired = opts.paired === undefined ? !!state.linked : !!opts.paired;
   if (statusCode === 401) {
-    // WhatsApp removed the device (or the session is dead): nothing to resume.
+    if (!paired) {
+      // Not a dead session: WhatsApp refused the code typed on the phone (a wrong
+      // digit, or it had expired). Keep the number so a fresh code can be issued.
+      state.phase = 'failed';
+      state.linked = null;
+      state.error = 'WhatsApp did not accept that code — it was typed wrong, or it had expired. Get a new code and type it exactly as shown.';
+      return;
+    }
+    // WhatsApp removed the device: nothing stored can be resumed.
     state.phase = 'failed';
     state.phone = null;
     state.linked = null;
-    state.error = 'this session was logged out on the phone — restart the bot to pair again';
+    state.error = 'this session was logged out on the phone — the bot is pairing itself again';
     return;
   }
   if (state.linked) {
@@ -332,7 +342,9 @@ function publicUrl() {
 /* ── request handling ──────────────────────────────────────────────────── */
 
 async function handleStart(req, res) {
-  if (!rateLimit(clientIp(req), 'start', 3, 10 * 60 * 1000)) {
+  // 8, not 3: a rejected code is normal (wrong digit, expired) and the retry has
+  // to work straight away instead of answering "too many attempts".
+  if (!rateLimit(clientIp(req), 'start', 8, 10 * 60 * 1000)) {
     return sendJson(res, 429, { error: 'Too many pairing attempts from this address. Wait a few minutes.' });
   }
   pruneTokens();
@@ -418,12 +430,14 @@ function handleStatus(req, res, query) {
     });
   }
 
-  if (!snap.ready) {
-    return sendJson(res, 200, { phase: 'starting', phone: rec.phone, error: state.error });
+  // Before `ready`: a refused attempt closes the socket, and reporting that as
+  // "starting" is what left the page spinning on "Talking to WhatsApp".
+  if (state.phase === 'failed') {
+    return sendJson(res, 200, { phase: 'failed', phone: rec.phone, error: state.error, retryable: true });
   }
 
-  if (state.phase === 'failed') {
-    return sendJson(res, 200, { phase: 'failed', phone: rec.phone, error: state.error });
+  if (!snap.ready) {
+    return sendJson(res, 200, { phase: 'starting', phone: rec.phone, error: state.error });
   }
 
   if (state.phone && state.phone !== rec.phone) {
@@ -481,6 +495,7 @@ async function route(req, res) {
     return sendJson(res, 200, {
       enabled: !!cfg.enabled,
       keyRequired: !!cfg.key,
+      customCode: cfg.customCode || '',
       phase: state.phase,
       codeWindowMs: cfg.codeWindowMs,
       serverTime: Date.now()
@@ -651,6 +666,8 @@ box-shadow:0 12px 28px -14px rgba(124,58,237,.95);transition:filter .18s,transfo
 .spinner{width:16px;height:16px;border-radius:50%;border:2px solid rgba(167,139,250,.25);border-top-color:var(--accent);animation:spin .9s linear infinite;flex:0 0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
 .sub{color:var(--mut);font-size:.85rem;margin:.15rem 0 0}
+.hint{margin:-.2rem 0 1rem;font-size:.86rem;line-height:1.5;color:var(--muted)}
+.hint b{color:var(--accent);font-family:var(--mono);letter-spacing:.06em}
 .codebox{margin:1.1rem 0 .35rem;padding:1rem .5rem;border-radius:14px;border:1px dashed rgba(167,139,250,.4);
 background:rgba(167,139,250,.07);display:flex;justify-content:center;gap:.35rem;flex-wrap:wrap}
 .digit{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.65rem;font-weight:700;letter-spacing:.06em;
@@ -698,6 +715,7 @@ footer a:hover{color:var(--ink)}
         <label for="phone">WhatsApp number</label>
         <input id="phone" type="tel" inputmode="numeric" autocomplete="tel" spellcheck="false" placeholder="233240000000">
       </div>
+      <p class="hint hidden" id="code-hint"></p>
       <div class="field hidden" id="key-field">
         <label for="key">Access key</label>
         <input id="key" type="text" autocomplete="off" spellcheck="false" placeholder="from the bot owner">
@@ -792,6 +810,12 @@ footer a:hover{color:var(--ink)}
 
   fetch('/pair/api/info').then(function (r) { return r.json(); }).then(function (d) {
     if (d.keyRequired) $('key-field').classList.remove('hidden');
+    if (d.customCode) {
+      var hint = $('code-hint');
+      hint.innerHTML = 'This bot always issues the same code: <b>' + d.customCode + '</b>. '
+        + 'Type exactly those 8 characters — WhatsApp codes are exactly 8 long.';
+      hint.classList.remove('hidden');
+    }
     if (!d.enabled) {
       setPhaseLabel('pairing off', 'off');
       return;
@@ -920,7 +944,22 @@ footer a:hover{color:var(--ink)}
       try { sessionStorage.removeItem(LINKED_KEY); } catch (e) { /* ignore */ }
       return;
     }
-    if (phase === 'expired' || phase === 'expired_code' || phase === 'failed' || phase === 'busy') {
+    if (phase === 'failed') {
+      $('spin').style.display = 'none';
+      $('codebox').classList.add('hidden');
+      $('btn-copy').classList.add('hidden');
+      $('howto').classList.add('hidden');
+      $('timer').classList.add('hidden');
+      $('btn-retry').classList.remove('hidden');
+      setPhaseLabel('needs a code', 'off');
+      try { sessionStorage.removeItem(LINKED_KEY); } catch (e) { /* ignore */ }
+      $('prog-title').textContent = 'That code was not accepted';
+      $('prog-sub').textContent = 'A fresh code is requested automatically — or press the button.';
+      say('msg-progress', data.error || 'Pairing failed. Get a new code.', 'err');
+      lastPhase = 'failed';
+      return;
+    }
+    if (phase === 'expired' || phase === 'expired_code' || phase === 'busy') {
       clearPoll();
       $('spin').style.display = 'none';
       $('codebox').classList.add('hidden');
@@ -976,7 +1015,7 @@ footer a:hover{color:var(--ink)}
       .then(function (r) { return r.json(); })
       .then(function (data) {
         apply(data);
-        if (data.phase !== 'linked' && data.phase !== 'expired' && data.phase !== 'expired_code' && data.phase !== 'failed' && data.phase !== 'busy') {
+        if (data.phase !== 'linked' && data.phase !== 'expired' && data.phase !== 'expired_code' && data.phase !== 'busy') {
           pollTimer = setTimeout(poll, 2500);
         }
       })
