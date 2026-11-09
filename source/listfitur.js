@@ -53,7 +53,7 @@ const getMenuDate = () => {
  * real artwork instead.
  */
 const MENU_HEADER_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/jpg']);
-const menuHeader = async (client, thumb, date) => {
+const menuHeader = async (client, thumb) => {
   try {
     if (!thumb) return {};
     const media = await prepareWAMessageMedia({
@@ -65,15 +65,12 @@ const menuHeader = async (client, thumb, date) => {
     });
     const imageMessage = media && media.imageMessage;
     if (!imageMessage || !MENU_HEADER_IMAGE_TYPES.has(String(imageMessage.mimetype || ''))) return {};
+    // ButtonsMessage takes the image at top level; a nested `header` object is
+    // dropped by the protobuf, which leaves headerType 4 with no media and
+    // WhatsApp discards the whole card without an error.
     return {
       headerType: 4,
-      header: {
-        hasMediaAttachment: true,
-        // The location card used to show the bot name and the date; keep them.
-        title: String(global.botname || 'Akoya-MD'),
-        subtitle: date ? String(date) : undefined,
-        imageMessage
-      }
+      imageMessage
     };
   } catch (error) {
     // A menu must still arrive if the upload fails: fall back to a text header.
@@ -134,13 +131,14 @@ async function menu(client, m, smsg, store, args) {
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖲𝗍𝖺𝗍𝗎𝗌:* ${statusUser}
 └╼ *𝖬𝗈𝖽𝖾:* ${modeBot}
+└╼ *𝖣𝖺𝗍𝖾:* ${date}
 
 ◜⁉️◞ *./𝖴𝗌𝖾𝗋_𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
 └╼ *𝗇𝖺𝗆𝖾:* ${m.pushName}
 └╼ *𝗌𝗍𝖺𝗍𝗎𝗌:* ${statusUser}`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: menuText,
       footerText: anu,
       buttons: [{
@@ -150,7 +148,6 @@ async function menu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -526,7 +523,7 @@ async function allmenu(client, m, smsg, store, args) {
 `;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -628,7 +625,6 @@ async function allmenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -697,7 +693,7 @@ async function ownermenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -795,7 +791,6 @@ async function ownermenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -850,7 +845,7 @@ async function jadibotmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -948,7 +943,6 @@ async function jadibotmenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -1004,7 +998,7 @@ async function paymentmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1102,7 +1096,6 @@ async function paymentmenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -1168,7 +1161,7 @@ async function aimenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1266,7 +1259,6 @@ async function aimenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -1338,7 +1330,7 @@ async function downloadmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1436,7 +1428,6 @@ async function downloadmenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -1496,7 +1487,7 @@ async function stickermenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1594,7 +1585,6 @@ async function stickermenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -1664,7 +1654,7 @@ async function imagemenu(client, m, smsg, store, args) {
 `;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1758,7 +1748,6 @@ async function imagemenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -1845,7 +1834,7 @@ async function makermenu(client, m, smsg, store, args) {
 `;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -1943,7 +1932,6 @@ async function makermenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -2011,7 +1999,7 @@ async function toolsmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2105,7 +2093,6 @@ async function toolsmenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -2173,7 +2160,7 @@ async function groupmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2271,7 +2258,6 @@ async function groupmenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -2338,7 +2324,7 @@ async function jpmmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2436,7 +2422,6 @@ async function jpmmenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -2496,7 +2481,7 @@ async function stalkmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2594,7 +2579,6 @@ async function stalkmenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -2657,7 +2641,7 @@ async function searchmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2755,7 +2739,6 @@ async function searchmenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -2813,7 +2796,7 @@ async function randommenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -2911,7 +2894,6 @@ async function randommenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -2968,7 +2950,7 @@ async function storemenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3066,7 +3048,6 @@ async function storemenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -3129,7 +3110,7 @@ async function funmenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3223,7 +3204,6 @@ async function funmenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -3297,7 +3277,7 @@ async function gamemenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3391,7 +3371,6 @@ async function gamemenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -3445,7 +3424,7 @@ async function quotemenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3539,7 +3518,6 @@ async function quotemenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
@@ -3594,7 +3572,7 @@ async function utilitymenu(client, m, smsg, store, args) {
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
-      ...(await menuHeader(client, thumb, date)),
+      ...(await menuHeader(client, thumb)),
       contentText: anu,
       footerText: menuText,
       buttons: [{
@@ -3688,7 +3666,6 @@ async function utilitymenu(client, m, smsg, store, args) {
         },
         type: 1
       }],
-      headerType: 6
     }
   }, {
     userJid: client.user.id,
