@@ -71,6 +71,15 @@ test('a session opened before registered was set is still reused', async () => {
   assert.strictEqual(quarantined().length, 0);
 });
 
+test('creds with an me.id but no link are still unfinished', async () => {
+  reset();
+  // WhatsApp hands out me.id during the handshake, before the link completes.
+  write('creds.json', creds({ registered: false, me: { id: '233533416608:7@s.whatsapp.net' } }));
+  const result = await session.prepareSession();
+  assert.strictEqual(result.linked, false, 'me.id alone must not be trusted');
+  assert.strictEqual(quarantined().length, 1);
+});
+
 test('an unfinished pairing is moved aside, never deleted', async () => {
   reset();
   write('creds.json', creds({ registered: false }));

@@ -220,6 +220,8 @@ let reconnectAttempt = 0;
 // A refused pairing attempt (bad or expired code) is not a dead session: the
 // socket is reopened so the page can issue a fresh code, a bounded number of times.
 let pairingRestarts = 0;
+// A stored handshake that WhatsApp refuses is moved aside at most a few times per boot.
+let refusedStoredSession = 0;
 const MAX_PAIRING_RESTARTS = 5;
 
 /// ───────── [ 𝖶𝖾𝖻 𝖯𝖺𝗂𝗋𝗂𝗇𝗀 : 𝗌𝗍𝖺𝗍𝖾 𝖻𝗋𝗂𝖽𝗀𝖾 ] ───────── ///
@@ -260,10 +262,13 @@ async function copyAtomic(from, to) {
   await fs.promises.rename(tmp, to);
 }
 
-/** Was this stored handshake one WhatsApp already accepted? */
+/**
+ * Was this stored handshake one WhatsApp already accepted?
+ * `me.id` is not evidence: an interrupted pairing handshake already carries it.
+ * Only the registered flag, or the marker we write once the socket opened, count.
+ */
 async function isLinkedCreds(creds) {
   if (creds && creds.registered === true) return true;
-  if (creds && creds.me && creds.me.id) return true;
   try {
     await fs.promises.access(LINK_MARKER);
     return true;
@@ -844,9 +849,21 @@ async function startingBot() {
           // the page hand out a new code instead of leaving the bot dead.
           const pendingPairing = !!(webPair.getState() || {}).phone;
           if (!pendingPairing) {
-            // Nothing was being paired, so reopening cannot help: this is a bad
-            // stored handshake, not a mistyped code.
-            log.error('Connection refused while unpaired — clear the session and restart the bot');
+            // Nothing was being paired, so reopening the same handshake cannot help:
+            // the stored one is dead. Move it aside and start a clean one, bounded so
+            // a bad volume cannot spin forever.
+            if (refusedStoredSession < 3) {
+              refusedStoredSession += 1;
+              log.warn('Stored handshake was refused: moving it aside and starting a clean pairing');
+              sessionPrepared = false;
+              quarantineSession('refused').then(() => {
+                setTimeout(() => {
+                  startingBot().catch(error => log.error('Restart after the refused handshake failed', error));
+                }, 1500);
+              }).catch(error => log.error('Could not move the refused session aside', error));
+            } else {
+              log.error('WhatsApp refused the stored session three times: check the number, then redeploy');
+            }
             return;
           }
           if (pairingRestarts < MAX_PAIRING_RESTARTS) {
