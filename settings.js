@@ -8,6 +8,8 @@ const {
 // Settings Bot
 global.owner = '233533416608';
 global.versi = version;
+// Everything date/time related uses this zone (menu header, greetings, logs).
+global.timezone = 'Africa/Accra';
 global.namaOwner = "moonson";
 global.tele = "t.me/DeathCore_Xr";
 global.packname = 'Sticker by - Akoya-MD';

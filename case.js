@@ -8498,7 +8498,7 @@ Total *${halls.length}* contacts`,
         }
         break;
 
-      /// ───────────── [ 𝖩𝖯𝖬 (𝖩𝖺𝗌𝖺 𝖯𝖾𝗌𝖺𝗇 𝖬𝖺𝗌𝗌𝖺𝗅) ] ──────────── ///
+      /// ───────────── [ 𝖩𝖯𝖬 (𝗆𝖺𝗌𝗌 𝗆𝖾𝗌𝗌𝖺𝗀𝗂𝗇𝗀) ] ──────────── ///
       case "jpm3":
         {
           if (!isOwner) return reply(mess.owner);
@@ -9178,7 +9178,7 @@ ${e.message}`);
       case "pay":
         {
           const teks = `‼️\`𝖬𝖾𝗍𝗈𝖽𝖾 𝖯𝖾𝗆𝖻𝖺𝗒𝖺𝗋𝖺𝗇\``;
-          const deks = `*𝖲𝗂𝗅𝖺𝗄𝖺𝗇 𝗉𝗂𝗅𝗂𝗁 𝗆𝖾𝗍𝗈𝖽𝖾 𝗉𝖾𝗆𝖻𝖺𝗒𝖺𝗋𝖺𝗇 𝗒𝖺𝗇𝗀 𝗍𝖾𝗋𝗌𝖾𝖽𝗂𝖺. 𝖯𝖺𝗌𝗍𝗂𝗄𝖺𝗇 𝗇𝗈𝗆𝗂𝗇𝖺𝗅 𝖽𝖺𝗇 𝗍𝗎𝗃𝗎𝖺𝗇 𝗉𝖾𝗆𝖻𝖺𝗒𝖺𝗋𝖺𝗇 𝗌𝗎𝖽𝖺𝗁 𝖻𝖾𝗇𝖺𝗋 𝗌𝖾𝖻𝖾𝗅𝗎𝗆 𝗆𝖾𝗅𝖺𝗄𝗎𝗄𝖺𝗇 𝗍𝗋𝖺𝗇𝗌𝖺𝗄𝗌𝗂.*
+          const deks = `*𝖯𝗂𝖼𝗄 𝗈𝗇𝖾 𝗈𝖿 𝗍𝗁𝖾 𝗉𝖺𝗒𝗆𝖾𝗇𝗍 𝗆𝖾𝗍𝗁𝗈𝖽𝗌 𝖻𝖾𝗅𝗈𝗐. 𝖣𝗈𝗎𝖻𝗅𝖾-𝖼𝗁𝖾𝖼𝗄 𝗍𝗁𝖾 𝖺𝗆𝗈𝗎𝗇𝗍 𝖺𝗇𝖽 𝗍𝗁𝖾 𝖽𝖾𝗌𝗍𝗂𝗇𝖺𝗍𝗂𝗈𝗇 𝖻𝖾𝖿𝗈𝗋𝖾 𝗒𝗈𝗎 𝗌𝖾𝗇𝖽 𝖺𝗇𝗒𝗍𝗁𝗂𝗇𝗀.*
 
 *🔔 𝖤-𝖶𝖺𝗅𝗅𝖾𝗍:*
 └╼ 𝖣𝖺𝗇𝖺
@@ -10114,7 +10114,7 @@ please daftarkan saluran first.
             };
             const preview = teks ? teks.substring(0, 60) + (teks.length > 60 ? "..." : "") : "no";
             await xreply(`
- ❰ *𝖯𝖱𝖮𝖲𝖤𝖲 𝖲𝖤𝖭𝖣* ❱
+ ❰ *𝖲𝖤𝖭𝖣𝖨𝖭𝖦* ❱
 > 📝 message: *${preview}*
 > 📷 Media   : *${mediaBuffer ? mediaType : "no"}*
 > 📺 Target  : *${channelIds.length}* channel
@@ -10367,7 +10367,7 @@ name Saluran: ${res.name}`);
               }
             });
             await xreply(`
-‼️ *𝖦𝖺𝗀𝖺𝗅 𝖱𝖾𝖺𝖼𝗍 𝖢𝗁𝖺𝗇𝗇𝖾𝗅*
+‼️ *𝖥𝖺𝗂𝗅𝖾𝖽 𝗍𝗈 𝗋𝖾𝖺𝖼𝗍 𝗍𝗈 𝗍𝗁𝖾 𝖼𝗁𝖺𝗇𝗇𝖾𝗅*
 └╼ *𝗅𝗂𝗇𝗄* : ${rchLink}
 └╼ *𝗋𝖾𝖺𝖼𝗍* : \`${rchEmojis.join(', ')}\`
 └╼ *𝗌𝗍𝖺𝗍𝗎𝗌*: *failed, try again ~*`);
@@ -10515,7 +10515,7 @@ Required *18 parameters*, but only received *${params.length}*.
         ;
         break;
 
-      /// ───────────── [ 𝖢𝖾𝖼𝗄 𝖲𝖺𝗅𝖽𝗈 & 𝖯𝖾𝗌𝖺𝗇 𝖳𝖳 ] ──────────── ///
+      /// ───────────── [ 𝖢𝗁𝖾𝖼𝗄 𝖻𝖺𝗅𝖺𝗇𝖼𝖾 & 𝗌𝖾𝗇𝖽 𝖺 𝖳𝖳 𝗆𝖾𝗌𝗌𝖺𝗀𝖾 ] ──────────── ///
       case 'ceksaldo':
         {
           try {
@@ -11673,7 +11673,7 @@ ${(data.text || "no prompt provided").length > 1500 ? data.text.slice(0, 1500) +
         }
         break;
 
-      /// ───────────── [ 𝖢𝖾𝗄 𝖨𝖽 𝖦𝗋𝗎𝗉 ] ──────────── ///
+      /// ───────────── [ 𝖢𝗁𝖾𝖼𝗄 𝗀𝗋𝗈𝗎𝗉 𝖨𝖣 ] ──────────── ///
       case "idgc":
       case "cekidgc":
         {
@@ -11912,7 +11912,7 @@ ${e.message}`);
         ;
         break;
 
-      /// ───────────── [ 𝖲𝗍𝖺𝗍𝗎𝗌 & 𝖢𝖾𝗄 𝖦𝗋𝗎𝗉 ] ──────────── ///
+      /// ───────────── [ 𝖦𝗋𝗈𝗎𝗉 𝗌𝗍𝖺𝗍𝗎𝗌 & 𝖼𝗁𝖾𝖼𝗄 ] ──────────── ///
       case 'totalchat':
       case 'statgroup':
         {

@@ -111,15 +111,15 @@ const isUrl = url => {
 };
 const getTime = (format, date) => {
   if (date) {
-    return moment(date).locale('id').format(format);
+    return moment(date).locale('en-GB').format(format);
   } else {
-    return moment.tz('Asia/Jakarta').locale('id').format(format);
+    return moment.tz(global.timezone || 'Africa/Accra').locale('en-GB').format(format);
   }
 };
 const capital = string => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
-const formatDate = (n, locale = 'id') => {
+const formatDate = (n, locale = 'en-GB') => {
   let d = new Date(n);
   return d.toLocaleDateString(locale, {
     weekday: 'long',
@@ -132,8 +132,8 @@ const formatDate = (n, locale = 'id') => {
   });
 };
 const tanggal = numer => {
-  myMonths = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-  myDays = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum’at', 'Sabtu'];
+  myMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  myDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   var tgl = new Date(numer);
   var day = tgl.getDate();
   bulan = tgl.getMonth();
@@ -141,9 +141,9 @@ const tanggal = numer => {
     thisDay = myDays[thisDay];
   var yy = tgl.getYear();
   var year = yy < 1000 ? yy + 1900 : yy;
-  const time = moment.tz('Asia/Jakarta').format('DD/MM HH:mm:ss');
+  const time = moment.tz(global.timezone || 'Africa/Accra').format('DD/MM HH:mm:ss');
   let d = new Date();
-  let locale = 'id';
+  let locale = 'en-GB';
   let gmt = new Date(0).getTime() - new Date('1 January 1970').getTime();
   let weton = ['Pahing', 'Pon', 'Wage', 'Kliwon', 'Legi'][Math.floor((d * 1 + gmt) / 84600000) % 5];
   return `${thisDay}, ${day} - ${myMonths[bulan]} - ${year}`;
