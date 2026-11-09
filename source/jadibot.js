@@ -170,7 +170,7 @@ class JadibotManager {
       return {
         ok: false,
         already: true,
-        message: entry.status === "online" ? "❌ you already menjadi *Jadibot* and online." : "⏳ Sesi Jadibot you masih dalam proses koneksi."
+        message: entry.status === "online" ? "❌ you are already *Jadibot* and online." : "⏳ Your jadibot session is still connecting."
       };
     }
 
@@ -341,7 +341,7 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
         await this.clearEntryTimers(entry, {
           keepReconnect: true
         });
-        await this.notify(entry, `✅ *Jadibot success terhubung!*
+        await this.notify(entry, `✅ *Jadibot connected!*
 
 ` + `number: *${entry.number}*\nStatus: *Online*\n\n` + `the clone bot is now ready to use.`);
         return;
@@ -359,7 +359,7 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
       /* Sesi logout — hapus session & cleanup */
       if (statusCode === DisconnectReason.loggedOut) {
         entry.status = "logged_out";
-        await this.notify(entry, "⚠️ Sesi Jadibot logout. Session lama telah dihapus.");
+        await this.notify(entry, "⚠️ Jadibot logged out. The old session has been deleted.");
         await this.cleanupEntry(entry, {
           removeSession: true
         });
@@ -448,8 +448,8 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
             },
             interactiveMessage: proto.Message.InteractiveMessage.create({
               body: proto.Message.InteractiveMessage.Body.create({
-                text: `*[ AKOYA - JADI BOT ]*\n\n` + `Kode Pairing you:
-*${displayCode}*\n\n` + `open WhatsApp > Perangkat Tertaut > Tautkan with number telepon.
+                text: `*[ AKOYA - JADIBOT ]*\n\n` + `Your pairing code:
+*${displayCode}*\n\n` + `open WhatsApp > Linked devices > Link with a phone number.
 
 `
               }),
@@ -464,7 +464,7 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
                 }, {
                   name: "quick_reply",
                   buttonParamsJson: JSON.stringify({
-                    display_text: "❌ Batal Jadibot",
+                    display_text: "❌ Cancel jadibot",
                     id: ".bataljadibot"
                   })
                 }]
@@ -480,7 +480,7 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
       });
     } catch (error) {
       entry.pairingSent = false;
-      await this.notify(entry, `❌ failed meminta kode pairing: ${error?.message || error}`, entry.pairingJid || entry.jid);
+      await this.notify(entry, `❌ failed requesting code pairing: ${error?.message || error}`, entry.pairingJid || entry.jid);
     }
   }
 
@@ -519,7 +519,7 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
     if (!candidate) {
       return {
         ok: false,
-        message: "❌ no proses Jadibot menunggu pairing."
+        message: "❌ no jadibot session is waiting for pairing."
       };
     }
     await this.cleanupEntry(candidate, {

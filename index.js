@@ -842,7 +842,7 @@ async function startingBot() {
             teks = author.split("").length < 1 ? `@${n.split('@')[0]} join via *welcome to the group 🐦‍🔥*
 
 🏷️ *_INFO & UPDATE client-MD_*
-${global.linkSaluran}` : author !== n ? `@${author.split("@")[0]} telah *menambahkan* @${n.split('@')[0]} into the group` : ``;
+${global.linkSaluran}` : author !== n ? `@${author.split("@")[0]} has *added* @${n.split('@')[0]} to the group` : ``;
             let img = await welcomeBanner(profile, n.split("@")[0], metadata.subject, "welcome");
             await client.sendMessage(id, {
               text: teks,
@@ -859,7 +859,7 @@ ${global.linkSaluran}` : author !== n ? `@${author.split("@")[0]} telah *menamba
               }
             });
           } else if (action == 'remove') {
-            teks = author == n ? `@${n.split('@')[0]} telah *keluar* from the group` : author !== n ? `@${author.split("@")[0]} telah *mengeluarkan* @${n.split('@')[0]} from the group` : "";
+            teks = author == n ? `@${n.split('@')[0]} has *left* from the group` : author !== n ? `@${author.split("@")[0]} has *removed* @${n.split('@')[0]} from the group` : "";
             let img = await welcomeBanner(profile, n.split("@")[0], metadata.subject, "remove");
             await client.sendMessage(id, {
               text: teks,
@@ -876,7 +876,7 @@ ${global.linkSaluran}` : author !== n ? `@${author.split("@")[0]} telah *menamba
               }
             });
           } else if (action == 'promote') {
-            teks = author == n ? `@${n.split('@')[0]} telah *menjadi admin* group ` : author !== n ? `@${author.split("@")[0]} telah *menjadikan* @${n.split('@')[0]} sebagai *admin* group` : "";
+            teks = author == n ? `@${n.split('@')[0]} is now *admin* of the group` : author !== n ? `@${author.split("@")[0]} has *made* @${n.split('@')[0]} as *admin*` : "";
             let img = await promoteBanner(profile, n.split("@")[0], "promote");
             await client.sendMessage(id, {
               text: teks,
@@ -893,7 +893,7 @@ ${global.linkSaluran}` : author !== n ? `@${author.split("@")[0]} telah *menamba
               }
             });
           } else if (action == 'demote') {
-            teks = author == n ? `@${n.split('@')[0]} telah *berhenti* menjadi *admin*` : author !== n ? `@${author.split("@")[0]} telah *menghentikan* @${n.split('@')[0]} sebagai *admin* group` : "";
+            teks = author == n ? `@${n.split('@')[0]} has *stopped being admin*` : author !== n ? `@${author.split("@")[0]} has *menghentikan* @${n.split('@')[0]} as *admin*` : "";
             let img = await promoteBanner(profile, n.split("@")[0], "demote");
             await client.sendMessage(id, {
               text: teks,

@@ -2,7 +2,7 @@ const axios = require("axios");
 const baseUrl = "https://api.siputzx.my.id/api/canvas/welcomev4";
 const backgroundV = "https://i.ibb.co/4YBNyvP/images-76.jpg";
 const xmsg = {
-  welcome: subject => `welcome di ${subject}`,
+  welcome: subject => `welcome in ${subject}`,
   leave: subject => `has left ${subject}`
 };
 const msg = {
