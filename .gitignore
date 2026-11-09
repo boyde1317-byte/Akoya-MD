@@ -1,0 +1,7 @@
+node_modules/
+session/
+*.zip
+*.log
+.env
+.fly/
+.DS_Store

@@ -1,0 +1,48 @@
+# ─── Akoya-MD on Fly.io ──────────────────────────────────────────────────────
+# One machine, always on: a WhatsApp socket cannot be load balanced and must
+# not be stopped when traffic goes quiet, or the bot drops offline.
+#
+#   fly launch --no-deploy      # keep this file, reply "no" to rewriting it
+#   fly volumes create akoya_data -s 1 -r jnb
+#   fly deploy
+#
+# Then open https://<app-name>.fly.dev/pair
+
+app = "akoya-md"
+primary_region = "jnb"   # Johannesburg; change to the closest region to you
+
+kill_signal = "SIGINT"   # lets Baileys close the socket cleanly
+kill_timeout = "20s"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  NODE_ENV = "production"
+  DATA_DIR = "/data"
+  # Optional: gate the pairing page with a key (also settable as a secret)
+  # WEB_PAIR_KEY = "change-me"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false   # never scale to zero: the bot must stay connected
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[http_service.checks]]
+  grace_period = "25s"    # gives npm/boot time before checks count against the machine
+  interval = "30s"
+  method = "GET"
+  path = "/health"        # served by source/webpair.js
+  timeout = "5s"
+
+[[mounts]]
+  source = "akoya_data"   # create with: fly volumes create akoya_data -s 1
+  destination = "/data"   # session + JSON database live here
+
+[[vm]]
+  memory = "1gb"          # sharp, canvas and Baileys are not happy in 256mb
+  cpu_kind = "shared"
+  cpus = 1

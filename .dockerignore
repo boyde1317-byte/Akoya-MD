@@ -1,0 +1,7 @@
+node_modules
+session
+npm-debug.log*
+*.zip
+.DS_Store
+.git
+.fly
