@@ -222,7 +222,7 @@ let reconnectAttempt = 0;
 let pairingRestarts = 0;
 // A stored handshake that WhatsApp refuses is moved aside at most a few times per boot.
 let refusedStoredSession = 0;
-const MAX_PAIRING_RESTARTS = 5;
+const MAX_PAIRING_RESTARTS = 3;
 
 /// ───────── [ 𝖶𝖾𝖻 𝖯𝖺𝗂𝗋𝗂𝗇𝗀 : 𝗌𝗍𝖺𝗍𝖾 𝖻𝗋𝗂𝖽𝗀𝖾 ] ───────── ///
 // WhatsApp only accepts a custom code that is exactly 8 chars A-Z / 0-9.
@@ -452,6 +452,11 @@ webPair.setSnapshot(() => {
   };
 });
 webPair.setSessionInfo(sessionState);
+webPair.setRestartRequester(async () => {
+  if (currentSock) return;
+  log.warn('The pairing page asked for a socket: rebuilding it');
+  await startingBot();
+});
 webPair.setCodeRequester(async phone => {
   const sock = currentSock;
   if (!sock) throw new Error('The bot is still starting — give it a few seconds and try again.');
@@ -758,6 +763,19 @@ async function xGroup(sock) {
 /// ───────── [ 𝖬𝖺𝗂𝗇 ] ───────── ///
 async function startingBot() {
   await databaseReady;
+  // Two live sockets share one noise key and WhatsApp invalidates the pairing,
+  // so the previous one is closed before a new handshake starts.
+  const previous = currentSock;
+  currentSock = null;
+  if (previous) {
+    try {
+      previous.ev.removeAllListeners('connection.update');
+      previous.ev.removeAllListeners('creds.update');
+      if (previous.ws && previous.ws.isOpen) previous.ws.close();
+      if (typeof previous.end === 'function') previous.end(undefined);
+    } catch (_) {}
+    await sleep(400);
+  }
   const waVersion = await getWaVersion();
   if (!lastDatabaseSnapshot && global.db) lastDatabaseSnapshot = JSON.stringify(global.db);
   const store = buildStore({
@@ -895,10 +913,16 @@ async function startingBot() {
           }
           if (pairingRestarts < MAX_PAIRING_RESTARTS) {
             pairingRestarts += 1;
-            log.warn(`Pairing attempt refused (code not accepted) — reopening the socket (${pairingRestarts}/${MAX_PAIRING_RESTARTS})`);
-            setTimeout(() => {
-              startingBot().catch(error => log.error('Reopening the pairing socket failed', error));
-            }, 1200).unref?.();
+            log.warn(`Pairing attempt refused — discarding that handshake and reopening (${pairingRestarts}/${MAX_PAIRING_RESTARTS})`);
+            // The refused handshake cannot be reused: the code is bound to its noise
+            // key, so presenting it again is an instant second refusal.
+            sessionPrepared = false;
+            quarantineSession('refused_pairing').then(() => {
+              webPair.resetRotations();
+              setTimeout(() => {
+                startingBot().catch(error => log.error('Reopening the pairing socket failed', error));
+              }, 4000);
+            }).catch(error => log.error('Could not move the refused handshake aside', error));
           } else {
             log.error('WhatsApp refused too many pairing attempts — wait a few minutes, then restart the bot');
           }

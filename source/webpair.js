@@ -61,7 +61,8 @@ let startedAt = Date.now();
 const handlers = {
   requestCode: null,
   snapshot: null,
-  sessionInfo: null
+  sessionInfo: null,
+  restart: null
 };
 
 const state = {
@@ -102,6 +103,11 @@ function setCodeRequester(fn) {
   handlers.requestCode = typeof fn === 'function' ? fn : null;
 }
 
+/** Lets the page rebuild a dead socket instead of telling the user to redeploy. */
+function setRestartRequester(fn) {
+  handlers.restart = typeof fn === 'function' ? fn : null;
+}
+
 function setSessionInfo(fn) {
   handlers.sessionInfo = typeof fn === 'function' ? fn : null;
 }
@@ -130,6 +136,13 @@ function markLinked(info = {}) {
     name: info.name || null,
     at: Date.now()
   };
+}
+
+/** A fresh handshake deserves a fresh rotation budget. */
+function resetRotations() {
+  state.attempts = 0;
+  state.rotated = false;
+  return state.attempts;
 }
 
 function markDisconnected(statusCode, opts = {}) {
@@ -387,6 +400,15 @@ async function handleStart(req, res) {
     return sendJson(res, 503, { error: 'Pairing is not available on this instance.' });
   }
   if (!snap.ready) {
+    // No socket (the rotation budget ran out, or it was refused): rebuild one
+    // rather than making the owner redeploy just to get a code.
+    if (handlers.restart) {
+      Promise.resolve().then(() => handlers.restart()).catch(() => {});
+      return sendJson(res, 202, {
+        retry: true,
+        error: 'Restarting the pairing socket. Try again in about ten seconds.'
+      });
+    }
     return sendJson(res, 503, { error: 'The bot is still starting. Give it a few seconds and try again.' });
   }
 
@@ -1068,6 +1090,8 @@ module.exports = {
   stop,
   setCodeRequester,
   setSessionInfo,
+  setRestartRequester,
+  resetRotations,
   setSnapshot,
   onSocketReady,
   markLinked,
