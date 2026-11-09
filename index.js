@@ -244,6 +244,19 @@ const CREDS_FILE = path.join(SESSION_DIR, 'creds.json');
 const CREDS_BACKUP = path.join(SESSION_DIR, 'creds.json.bak');
 const LINK_MARKER = path.join(SESSION_DIR, '.linked');
 
+/**
+ * The real directory behind SESSION_DIR. On Fly, `session` is a symlink onto the
+ * volume: renaming the symlink would silently move the session into the container
+ * layer, where the next deploy throws it away. Always work on the target.
+ */
+function sessionRealDir() {
+  try {
+    return fs.realpathSync(SESSION_DIR);
+  } catch (_) {
+    return path.resolve(SESSION_DIR);
+  }
+}
+
 const readJson = async file => {
   try {
     return JSON.parse(await fs.promises.readFile(file, 'utf8'));
@@ -279,9 +292,15 @@ async function isLinkedCreds(creds) {
 
 /** Move a session aside; never delete it. The volume keeps the history. */
 async function quarantineSession(reason) {
+  const real = sessionRealDir();
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const target = SESSION_DIR + '.' + String(reason).replace(/[^A-Za-z0-9_-]/g, '_') + '-' + stamp;
-  await fs.promises.rename(SESSION_DIR, target).catch(() => {});
+  const target = real + '.' + String(reason).replace(/[^A-Za-z0-9_-]/g, '_') + '-' + stamp;
+  await fs.promises.mkdir(target, {
+    recursive: true
+  });
+  for (const name of await fs.promises.readdir(real).catch(() => [])) {
+    await fs.promises.rename(path.join(real, name), path.join(target, name)).catch(() => {});
+  }
   await fs.promises.mkdir(SESSION_DIR, {
     recursive: true
   });
@@ -292,8 +311,9 @@ async function quarantineSession(reason) {
 
 /** Old quarantines are useful for a while, then they are just clutter on a 1GB disk. */
 async function pruneQuarantines(keep = 5) {
-  const base = path.basename(SESSION_DIR);
-  const parent = path.dirname(path.resolve(SESSION_DIR));
+  const real = sessionRealDir();
+  const base = path.basename(real);
+  const parent = path.dirname(real);
   const entries = (await fs.promises.readdir(parent)).filter(name => name.startsWith(base + '.'));
   const sorted = [];
   for (const name of entries) {
@@ -328,6 +348,13 @@ async function prepareSession() {
       creds = backup;
       log.warn('creds.json was missing or unreadable: restored the backup copy');
     }
+  }
+  const real = sessionRealDir();
+  const dataDir = process.env.DATA_DIR;
+  if (dataDir && !real.startsWith(dataDir)) {
+    log.warn(`Session folder ${real} is not on ${dataDir}: it will not survive a deploy`);
+  } else {
+    log.info(`Session folder ${real}`);
   }
   if (!creds) {
     log.info('No stored session yet: this bot will pair once');

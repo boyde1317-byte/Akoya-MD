@@ -115,6 +115,29 @@ test('opening the socket freezes the handshake to disk', async () => {
   assert.strictEqual(info.backup, true);
 });
 
+test('quarantining keeps the volume symlink intact', async () => {
+  // Mirrors Fly: `session` is a symlink onto the mounted volume. Renaming the
+  // symlink itself would put the new session in the container layer and lose it
+  // on the next deploy, which is the whole bug.
+  reset();
+  fs.rmSync(dir(), { recursive: true, force: true });
+  const volume = path.join(root, 'volume');
+  fs.mkdirSync(volume, { recursive: true });
+  fs.mkdirSync(path.join(volume, 'session'), { recursive: true });
+  fs.symlinkSync(path.join(volume, 'session'), dir());
+  fs.writeFileSync(path.join(dir(), 'creds.json'), JSON.stringify(creds({ registered: false })));
+
+  const result = await session.prepareSession();
+  assert.strictEqual(result.linked, false);
+  assert.ok(fs.lstatSync(dir()).isSymbolicLink(), 'session must stay a symlink');
+  assert.strictEqual(fs.realpathSync(dir()), path.join(volume, 'session'), 'still on the volume');
+  assert.strictEqual(fs.readdirSync(path.join(volume, 'session')).length, 0, 'live folder is clean');
+
+  const archives = fs.readdirSync(volume).filter(name => name.startsWith('session.unpaired-'));
+  assert.strictEqual(archives.length, 1, 'the archive belongs on the volume too');
+  assert.ok(fs.existsSync(path.join(volume, archives[0], 'creds.json')), 'nothing was deleted');
+});
+
 (async () => {
   let failed = 0;
   for (const { name, fn } of tests) {
