@@ -1,6 +1,6 @@
 {
   "name": "akoya-md",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "Akoya-MD \u2014 WhatsApp Bot Multi Device (type case)",
   "main": "index.js",
   "type": "commonjs",

@@ -223,6 +223,14 @@ module.exports = client = async (client, m, chatUpdate, store) => {
     };
     let isSenderAdmin = Boolean(m.isAdmin);
     let isBotAdmin = Boolean(m.isBotAdmin);
+    // A message that dies before the [CMD] line used to leave no trace at all.
+    try {
+      const kind = m.message ? Object.keys(m.message)[0] : 'none';
+      const raw = m.message?.conversation || m.message?.extendedTextMessage?.text ||
+        m.message?.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson || '';
+      console.log(`  [IN] ${m.isGroup ? 'group' : 'dm'} ${String(m.chat).split('@')[0]} ${kind} ${String(raw).slice(0, 60)}`);
+    } catch (_) {}
+
     let groupMetadataForMessage = null;
     if (m.isGroup && m.chat && typeof client.groupMetadata === 'function') {
       global.__groupAdminMetadataCache ??= new Map();
@@ -234,7 +242,13 @@ module.exports = client = async (client, m, chatUpdate, store) => {
         if (cachedMetadata && cachedMetadata.expiresAt > now) {
           groupMetadataForMessage = cachedMetadata.metadata;
         } else {
-          groupMetadataForMessage = await client.groupMetadata(m.chat);
+          groupMetadataForMessage = await Promise.race([
+            client.groupMetadata(m.chat),
+            new Promise((resolve, reject) => {
+              const timer = setTimeout(() => reject(new Error('groupMetadata timed out after 8s')), 8000);
+              timer.unref?.();
+            })
+          ]);
           if (Array.isArray(groupMetadataForMessage?.participants)) {
             adminCache.set(cacheKey, {
               metadata: groupMetadataForMessage,
@@ -8694,6 +8708,8 @@ Total *${halls.length}* contacts`,
       case "mute":
         {
           if (!isOwner && !isPremium) return reply(mess.owner);
+          if (!m.isGroup) return reply('Mute only works inside a group.');
+          global.db.groups[m.chat] ||= {};
           let teks = text.toLowerCase();
           if (teks == "on") {
             if (global.db.groups[m.chat].mute == true) return xreply(`*Mute* is already enabled in the group!`);
