@@ -1,0 +1,35 @@
+name: Deploy to Fly
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: fly-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      # The image is built on the runner's own Docker, then pushed to
+      # registry.fly.io, so the deploy does not depend on Depot or the
+      # legacy remote builder.
+      - name: Deploy
+        run: flyctl deploy --local-only --ha=false
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Smoke test
+        run: |
+          for i in $(seq 1 20); do
+            body=$(curl -fsS "https://akoya-md.fly.dev/health" || true)
+            if [ -n "$body" ]; then echo "$body"; exit 0; fi
+            sleep 6
+          done
+          echo "health endpoint did not answer"; exit 1
