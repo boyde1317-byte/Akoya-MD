@@ -18,9 +18,22 @@ if [ -d "$DATA_DIR" ]; then
     echo "[fly] seeded database from image"
   fi
 
+  # If an earlier boot ran without the volume mounted, real creds can be sitting
+  # in the image layer. Rescue them onto the volume first: losing them means the
+  # bot asks for a fresh pairing code on every deploy, which is what gets a
+  # number flagged.
+  if [ -d "$APP_DIR/session" ] && [ ! -L "$APP_DIR/session" ] && [ -f "$APP_DIR/session/creds.json" ]; then
+    if [ ! -f "$DATA_DIR/session/creds.json" ]; then
+      cp -a "$APP_DIR/session/." "$DATA_DIR/session/" 2>/dev/null || true
+      echo "[fly] rescued session creds from the container into the volume"
+    fi
+  fi
+
   # Point the bot at the volume. Symlinks keep the code's relative paths
   # ('session', 'library/database') untouched.
-  rm -rf "$APP_DIR/session"
+  if [ -e "$APP_DIR/session" ] || [ -L "$APP_DIR/session" ]; then
+    rm -rf "$APP_DIR/session"
+  fi
   ln -sfn "$DATA_DIR/session" "$APP_DIR/session"
 
   if [ -d "$APP_DIR/library/database" ] && [ ! -L "$APP_DIR/library/database" ]; then
@@ -28,9 +41,18 @@ if [ -d "$DATA_DIR" ]; then
     ln -sfn "$DATA_DIR/database" "$APP_DIR/library/database"
   fi
 
-  echo "[fly] session → $DATA_DIR/session, database → $DATA_DIR/database"
+  if [ -f "$DATA_DIR/session/creds.json" ]; then
+    if grep -q '"registered":true' "$DATA_DIR/session/creds.json" 2>/dev/null; then
+      echo "[fly] session -> $DATA_DIR/session (linked, no pairing needed)"
+    else
+      echo "[fly] session -> $DATA_DIR/session (creds present, not registered yet)"
+    fi
+  else
+    echo "[fly] session -> $DATA_DIR/session (empty, first pairing)"
+  fi
+  echo "[fly] database -> $DATA_DIR/database"
 else
-  echo "[fly] no $DATA_DIR volume mounted — session and database stay ephemeral"
+  echo "[fly] WARNING: no $DATA_DIR volume mounted — session and database stay ephemeral"
 fi
 
 exec node "$APP_DIR/index.js"

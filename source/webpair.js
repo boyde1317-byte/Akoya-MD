@@ -60,7 +60,8 @@ let startedAt = Date.now();
 
 const handlers = {
   requestCode: null,
-  snapshot: null
+  snapshot: null,
+  sessionInfo: null
 };
 
 const state = {
@@ -72,6 +73,7 @@ const state = {
   issuedAt: null,
   expiresAt: null,
   attempts: 0,
+  lastPollAt: 0,
   linked: null // { jid, name, at }
 };
 
@@ -100,6 +102,9 @@ function setCodeRequester(fn) {
   handlers.requestCode = typeof fn === 'function' ? fn : null;
 }
 
+function setSessionInfo(fn) {
+  handlers.sessionInfo = typeof fn === 'function' ? fn : null;
+}
 function setSnapshot(fn) {
   handlers.snapshot = typeof fn === 'function' ? fn : null;
 }
@@ -174,6 +179,17 @@ async function onSocketReady() {
   if (!state.phone || !handlers.requestCode) {
     if (state.phase !== 'code') state.phase = 'starting';
     return { phase: state.phase };
+  }
+  // Nobody has polled the page for two minutes: do not spend another pairing
+  // code on it. Repeated code requests are what gets a number flagged.
+  const watching = state.phone && Date.now() - (state.lastPollAt || 0) < 120000;
+  if (!watching) {
+    state.phase = 'idle';
+    state.code = null;
+    state.expiresAt = null;
+    state.phone = null;
+    state.error = null;
+    return { phase: 'idle' };
   }
   if (state.attempts >= cfg.maxRotations) {
     state.phase = 'failed';
@@ -417,6 +433,7 @@ function handleStatus(req, res, query) {
     return sendJson(res, 404, { phase: 'expired', error: 'This pairing session expired. Start again.' });
   }
 
+  state.lastPollAt = Date.now();
   const snap = snapshot();
   const linked = snap.registered || state.phase === 'linked';
   if (linked) {
@@ -483,11 +500,14 @@ async function route(req, res) {
 
   if (req.method === 'GET' && pathname === '/health') {
     const snap = snapshot();
+    const session = handlers.sessionInfo ? await handlers.sessionInfo().catch(() => null) : null;
     return sendJson(res, 200, {
       ok: true,
       uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
       phase: state.phase,
-      linked: !!(snap.registered || state.phase === 'linked')
+      linked: !!(snap.registered || state.phase === 'linked'),
+      jid: (snap && snap.jid) || null,
+      session
     });
   }
 
@@ -522,7 +542,7 @@ function start() {
   if (server && server.listening) return publicUrl();
   if (listenError) return null;
   startedAt = Date.now();
-  server = http.createServer((req, res) => {
+  server = http.createServer(async (req, res) => {
     Promise.resolve(route(req, res)).catch((error) => {
       try {
         sendJson(res, 500, { error: 'Internal error' });
@@ -1047,6 +1067,7 @@ module.exports = {
   start,
   stop,
   setCodeRequester,
+  setSessionInfo,
   setSnapshot,
   onSocketReady,
   markLinked,

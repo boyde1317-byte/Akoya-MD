@@ -232,34 +232,172 @@ const customPairCode = () => {
   if (!raw) return undefined;
   return raw.length >= 8 ? raw.slice(0, 8) : raw + '1'.repeat(8 - raw.length);
 };
-// A logged-out session can never be reused, so a stale one on the volume only
-// makes every later boot fail the same way. Clearing it lets the bot pair again.
-async function forgetSession(dir = 'session') {
-  await fs.promises.rm(dir, {
-    recursive: true,
-    force: true
-  });
-  await fs.promises.mkdir(dir, {
-    recursive: true
-  });
-}
-/**
- * Credentials left behind by an unfinished pairing have registered === false, and
- * WhatsApp rejects them the moment they are presented (a 401 a second into boot).
- * They can never be completed later, so clear them and start a clean handshake.
- */
-async function discardUnpairedSession(dir = 'session') {
-  const file = path.join(dir, 'creds.json');
-  let creds;
+/// ───────── [ 𝖲𝖾𝗌𝗌𝗂𝗈𝗇 𝗉𝖾𝗋𝗌𝗂𝗌𝗍𝖾𝗇𝖼𝖾 ] ───────── ///
+// A completed pairing leaves creds with registered === true. WhatsApp then accepts
+// the stored noise/identity keys on every later boot, so a redeploy is a plain
+// restart. Losing those creds means asking for a fresh code on every deploy, which
+// is exactly the pattern that gets a number flagged — so nothing here deletes them.
+const SESSION_DIR = process.env.SESSION_DIR || 'session';
+const CREDS_FILE = path.join(SESSION_DIR, 'creds.json');
+const CREDS_BACKUP = path.join(SESSION_DIR, 'creds.json.bak');
+const LINK_MARKER = path.join(SESSION_DIR, '.linked');
+
+const readJson = async file => {
   try {
-    creds = JSON.parse(await fs.promises.readFile(file, 'utf8'));
+    return JSON.parse(await fs.promises.readFile(file, 'utf8'));
+  } catch (_) {
+    return null;
+  }
+};
+
+/** Write through a temp file + fsync + rename, so a killed container cannot tear it. */
+async function copyAtomic(from, to) {
+  const tmp = to + '.tmp';
+  await fs.promises.copyFile(from, tmp);
+  const handle = await fs.promises.open(tmp, 'r');
+  await handle.sync().catch(() => {});
+  await handle.close();
+  await fs.promises.rename(tmp, to);
+}
+
+/** Was this stored handshake one WhatsApp already accepted? */
+async function isLinkedCreds(creds) {
+  if (creds && creds.registered === true) return true;
+  if (creds && creds.me && creds.me.id) return true;
+  try {
+    await fs.promises.access(LINK_MARKER);
+    return true;
   } catch (_) {
     return false;
   }
-  if (creds && creds.registered) return false;
-  await forgetSession(dir);
-  log.warn('Discarded an unfinished pairing session — the bot will pair from scratch');
-  return true;
+}
+
+/** Move a session aside; never delete it. The volume keeps the history. */
+async function quarantineSession(reason) {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const target = SESSION_DIR + '.' + String(reason).replace(/[^A-Za-z0-9_-]/g, '_') + '-' + stamp;
+  await fs.promises.rename(SESSION_DIR, target).catch(() => {});
+  await fs.promises.mkdir(SESSION_DIR, {
+    recursive: true
+  });
+  log.warn('Session moved aside (' + reason + ') -> ' + target);
+  await pruneQuarantines().catch(() => {});
+  return target;
+}
+
+/** Old quarantines are useful for a while, then they are just clutter on a 1GB disk. */
+async function pruneQuarantines(keep = 5) {
+  const base = path.basename(SESSION_DIR);
+  const parent = path.dirname(path.resolve(SESSION_DIR));
+  const entries = (await fs.promises.readdir(parent)).filter(name => name.startsWith(base + '.'));
+  const sorted = [];
+  for (const name of entries) {
+    const full = path.join(parent, name);
+    const stat = await fs.promises.stat(full).catch(() => null);
+    if (stat && stat.isDirectory()) sorted.push({ full, at: stat.mtimeMs });
+  }
+  sorted.sort((a, b) => b.at - a.at);
+  for (const old of sorted.slice(keep)) {
+    await fs.promises.rm(old.full, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+/**
+ * Decide what to do with whatever is on the volume:
+ *   usable creds  -> keep them, the bot reconnects without pairing
+ *   no creds      -> first boot, pair
+ *   unfinished    -> quarantine (registered === false and nothing was ever linked)
+ */
+let sessionPrepared = false;
+async function prepareSession() {
+  await fs.promises.mkdir(SESSION_DIR, {
+    recursive: true
+  });
+  if (sessionPrepared) return { linked: false, alreadyPrepared: true };
+  sessionPrepared = true;
+  let creds = await readJson(CREDS_FILE);
+  if (!creds) {
+    const backup = await readJson(CREDS_BACKUP);
+    if (backup) {
+      await copyAtomic(CREDS_BACKUP, CREDS_FILE);
+      creds = backup;
+      log.warn('creds.json was missing or unreadable: restored the backup copy');
+    }
+  }
+  if (!creds) {
+    log.info('No stored session yet: this bot will pair once');
+    return { linked: false };
+  }
+  if (await isLinkedCreds(creds)) {
+    const jid = creds.me && creds.me.id ? String(creds.me.id).split(':')[0] : null;
+    log.info('Stored session reused' + (jid ? ' (' + jid + ')' : '') + ': no pairing code needed');
+    return { linked: true };
+  }
+  await quarantineSession('unpaired');
+  return { linked: false };
+}
+
+/** Atomic write of the creds we hold in memory. */
+async function writeCreds(creds) {
+  const tmp = CREDS_FILE + '.tmp';
+  await fs.promises.writeFile(tmp, JSON.stringify(creds, null, 2));
+  const handle = await fs.promises.open(tmp, 'r');
+  await handle.sync().catch(() => {});
+  await handle.close();
+  await fs.promises.rename(tmp, CREDS_FILE);
+}
+
+/** Mirror the creds Baileys writes, so a torn write can never cost the session. */
+async function snapshotCreds() {
+  if (await readJson(CREDS_FILE)) await copyAtomic(CREDS_FILE, CREDS_BACKUP);
+}
+
+/** Called the moment the socket opens: freeze the handshake so it survives restarts. */
+async function markSessionLinked(client) {
+  try {
+    const creds = client.authState && client.authState.creds;
+    if (creds && creds.registered !== true) {
+      creds.registered = true;
+      await writeCreds(creds); // the flag has to be on disk, not just in memory
+    }
+    await snapshotCreds();
+    await fs.promises.writeFile(LINK_MARKER, JSON.stringify({
+      jid: (client.user && client.user.id) || (creds && creds.me && creds.me.id) || null,
+      linkedAt: new Date().toISOString()
+    }, null, 2));
+    log.info('Session saved: later restarts and redeploys will not ask for a code');
+  } catch (error) {
+    log.error('Could not persist the linked session', error);
+  }
+}
+
+/** Report what is on disk, so /health can prove a deploy kept the session. */
+async function sessionState() {
+  const creds = await readJson(CREDS_FILE);
+  const backup = await readJson(CREDS_BACKUP);
+  let marker = null;
+  try {
+    marker = JSON.parse(await fs.promises.readFile(LINK_MARKER, 'utf8'));
+  } catch (_) {}
+  let stat = null;
+  try {
+    stat = await fs.promises.stat(CREDS_FILE);
+  } catch (_) {}
+  let files = 0;
+  try {
+    files = (await fs.promises.readdir(SESSION_DIR)).length;
+  } catch (_) {}
+  return {
+    dir: path.resolve(SESSION_DIR),
+    dataDir: process.env.DATA_DIR || null,
+    files,
+    creds: !!creds,
+    registered: !!(creds && creds.registered === true),
+    backup: !!backup,
+    linkedAt: (marker && marker.linkedAt) || null,
+    jid: creds && creds.me && creds.me.id ? String(creds.me.id).split(':')[0] : null,
+    credsUpdatedSecondsAgo: stat ? Math.round((Date.now() - stat.mtimeMs) / 1000) : null
+  };
 }
 async function requestPairCode(sock, phone) {
   const digits = String(phone || '').replace(/[^0-9]/g, '');
@@ -281,6 +419,7 @@ webPair.setSnapshot(() => {
     name: sock && sock.user ? sock.user.name : null
   };
 });
+webPair.setSessionInfo(sessionState);
 webPair.setCodeRequester(async phone => {
   const sock = currentSock;
   if (!sock) throw new Error('The bot is still starting — give it a few seconds and try again.');
@@ -595,11 +734,11 @@ async function startingBot() {
       stream: 'store'
     })
   });
-  await discardUnpairedSession('session');
+  await prepareSession();
   const {
     state,
     saveCreds
-  } = await useMultiFileAuthState('session');
+  } = await useMultiFileAuthState(SESSION_DIR);
   const client = WAConnection({
     printQRInTerminal: !pairingCode,
     syncFullHistory: false,
@@ -676,7 +815,11 @@ async function startingBot() {
       log.warn('No terminal to prompt for a number and web pairing is disabled — enable global.webPair in settings.js');
     }
   }
-  client.ev.on('creds.update', saveCreds);
+  // Every creds change lands in two places: Baileys' creds.json and an atomic
+  // backup, so an interrupted write on a redeploy cannot destroy the session.
+  client.ev.on('creds.update', () => {
+    saveCreds().then(() => snapshotCreds()).catch(error => log.error('Saving the session failed', error));
+  });
 
   /// ───────── [ 𝖢𝗈𝗇𝗇𝖾𝖼𝗍𝗂𝗈𝗇 ] ───────── ///
   client.ev.on('connection.update', async update => {
@@ -719,8 +862,8 @@ async function startingBot() {
         }
         // The device was removed on the phone, so the stored credentials are
         // worthless: clear them and go back to the pairing screen.
-        log.warn('Session logged out on the phone — clearing it so the bot can pair again');
-        forgetSession().then(() => {
+        log.warn('Session logged out on the phone: moving it aside so the bot can pair again');
+        quarantineSession('logged_out').then(() => {
           setTimeout(() => {
             startingBot().catch(error => log.error('Re-pairing start failed', error));
           }, 1500);
@@ -731,7 +874,11 @@ async function startingBot() {
       if (currentSock === client) jadibotManager.setRuntime(null, commandHandler);
       reconnecting = true;
       reconnectAttempt++;
-      const delayMs = Math.min(30000, 2000 * Math.pow(2, Math.min(reconnectAttempt - 1, 4)));
+      // Unpaired sockets exist only so the page can request a code: there is no
+      // point hammering WhatsApp every few seconds, and doing so looks abusive.
+      const delayMs = wasPaired
+        ? Math.min(30000, 2000 * Math.pow(2, Math.min(reconnectAttempt - 1, 4)))
+        : Math.min(300000, 15000 * Math.pow(2, Math.min(reconnectAttempt - 1, 5)));
       log.warn(`Connection closed (code ${statusCode ?? 'unknown'}), reconnecting in ${delayMs}ms`);
       if (reconnectTimer) clearTimeout(reconnectTimer);
       reconnectTimer = setTimeout(async () => {
@@ -753,6 +900,7 @@ async function startingBot() {
         jid: client.user?.id || null,
         name: client.user?.name || null
       });
+      await markSessionLinked(client);
       jadibotManager.setRuntime(client, commandHandler);
       jadibotManager.restore(client, commandHandler).catch(error => log.error('Jadibot restore failed', error));
       client.sendMessage(client.user.id.split(":")[0] + "@s.whatsapp.net", {
@@ -893,7 +1041,7 @@ ${global.linkSaluran}` : author !== n ? `@${author.split("@")[0]} has *added* @$
               }
             });
           } else if (action == 'demote') {
-            teks = author == n ? `@${n.split('@')[0]} has *stopped being admin*` : author !== n ? `@${author.split("@")[0]} has *menghentikan* @${n.split('@')[0]} as *admin*` : "";
+            teks = author == n ? `@${n.split('@')[0]} has *stopped being admin*` : author !== n ? `@${author.split("@")[0]} has *removed* @${n.split('@')[0]} as *admin*` : "";
             let img = await promoteBanner(profile, n.split("@")[0], "demote");
             await client.sendMessage(id, {
               text: teks,
@@ -919,7 +1067,7 @@ ${global.linkSaluran}` : author !== n ? `@${author.split("@")[0]} has *added* @$
   return client;
 }
 /// ───────── [ 𝖶𝖾𝖻 𝖯𝖺𝗂𝗋𝗂𝗇𝗀 ] ───────── ///
-if (webPair.isEnabled()) {
+if (!process.env.SESSION_SELFTEST && webPair.isEnabled()) {
   const pairUrl = webPair.start();
   if (pairUrl) log.info(`Pairing page ${pairUrl}`);
   const effectivePair = customPairCode();
@@ -930,4 +1078,27 @@ if (webPair.isEnabled()) {
       : `Custom pairing code: ${effectivePair} (from "${wished}" — WhatsApp requires exactly 8 characters)`);
   }
 }
+if (process.env.SESSION_SELFTEST) {
+  // scripts/session-selftest.js drives the persistence helpers without a socket.
+  module.exports = {
+    prepareSession, markSessionLinked, sessionState, quarantineSession, snapshotCreds, SESSION_DIR,
+    resetSessionCache: () => { sessionPrepared = false; }
+  };
+} else {
+/// ───────── [ 𝖦𝗋𝖺𝖼𝖾𝖿𝗎𝗅 𝗌𝗍𝗈𝗉 ] ───────── ///
+// Fly sends SIGINT, then SIGKILL 20s later: finish the creds write we started.
+let shuttingDown = false;
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.on(signal, async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    log.warn('Shutting down: saving the session before exit');
+    try {
+      await snapshotCreds();
+      if (currentSock && currentSock.ws && currentSock.ws.isOpen) currentSock.ws.close();
+    } catch (_) {}
+    process.exit(0);
+  });
+}
 startingBot();
+}

@@ -663,7 +663,7 @@ module.exports = client = async (client, m, chatUpdate, store) => {
         const res = await client.groupParticipantsUpdate(m.chat, [resolveGroupJid(jid)], 'remove');
         const status = String(res?.[0]?.status ?? '200');
         if (status !== '200') {
-          console.log("[MODERASI] Kick ditolak, status:", status);
+          console.log("[MODERASI] Kick rejected, status:", status);
           return false;
         }
         return true;
@@ -1190,8 +1190,8 @@ ${global.tekspromosi}
       const delay = Number.isFinite(configuredDelay) && configuredDelay >= 0 ? configuredDelay : 3500;
       let sent = 0;
       let failed = 0;
-      await xreply(`⏳ *Memproses ${label}*\n` + `Target: *${targets.length} group*
-` + (skipped ? `Dilewati (blacklist JPM): *${skipped} group*` : "sending to all groups not blacklisted."));
+      await xreply(`⏳ *Processing ${label}*\n` + `Target: *${targets.length} group*
+` + (skipped ? `Skipped (blacklist JPM): *${skipped} group*` : "sending to all groups not blacklisted."));
       for (let index = 0; index < targets.length; index++) {
         const groupId = targets[index];
         try {
@@ -1208,7 +1208,7 @@ ${global.tekspromosi}
       await client.sendMessage(m.chat, {
         text: `✅ *${label} finished*\n` + `• success: *${sent} group*
 ` + `• failed: *${failed} group*
-` + `• Blacklist dilewati: *${skipped} group*`
+` + `• Blacklist skipped: *${skipped} group*`
       }, {
         quoted: m
       });
@@ -1486,8 +1486,8 @@ ${global.tekspromosi}
             const limit = 50;
             const tampilkan = results.slice(0, limit);
             const total = results.length;
-            let teks = `🔎 *SEARCH GROUP*\n` + `━━━━━━━━━━━━━━━━━━\n` + `🔍 Query: *${query}*\n` + `📊 Ditemukan: *${total} group*
-` + `📋 Ditampilkan: *${tampilkan.length} group*
+            let teks = `🔎 *SEARCH GROUP*\n` + `━━━━━━━━━━━━━━━━━━\n` + `🔍 Query: *${query}*\n` + `📊 Found: *${total} group*
+` + `📋 Displayed: *${tampilkan.length} group*
 
 `;
             tampilkan.forEach((group, index) => {
@@ -1842,7 +1842,7 @@ ${global.tekspromosi}
             if (!data?.status || !data?.result?.success) {
               return xreply("❌ failed to send the verification link.\n" + `message: ${data?.result?.message || "the API returned no valid response."}`);
             }
-            await xreply("✅ *AM SEND V2 success*\n" + "━━━━━━━━━━━━━━━━━━\n" + `📧 Email: ${email}\n` + `📩 Status: ${data.result.message || "Link sent."}\n\n` + `_Check the target's inbox/spam, then grab link verifikasinya and jalankan:_\n` + example(`${prefix}amverif2 ${email}|https://alight-creative.firebaseapp.com/__/auth/links?link=...`));
+            await xreply("✅ *AM SEND V2 success*\n" + "━━━━━━━━━━━━━━━━━━\n" + `📧 Email: ${email}\n` + `📩 Status: ${data.result.message || "Link sent."}\n\n` + `_Check the target's inbox/spam, then grab link the verification and run:_\n` + example(`${prefix}amverif2 ${email}|https://alight-creative.firebaseapp.com/__/auth/links?link=...`));
           } catch (err) {
             console.error("AMSEND V2 ERROR:", err?.response?.data || err);
             const errorData = err?.response?.data;
@@ -1930,7 +1930,7 @@ ${global.tekspromosi}
             if (!sendData?.status || !sendData?.result?.success) {
               return xreply("❌ failed to send the verification link.\n" + `message: ${sendData?.result?.message || "Unknown error"}`);
             }
-            await xreply("✅ link sent to your email.\n\n" + "⚠️ *Step next:*\n" + "1. Open the target email (inbox/spam)\n" + "2. click the verification link from Alight Motion\n" + "3. Copy URL in address bar after redirect\n" + "4. Jalankan command:\n" + example(`${prefix}amverif2 ${email}|COPIED_LINK`));
+            await xreply("✅ link sent to your email.\n\n" + "⚠️ *Step next:*\n" + "1. Open the target email (inbox/spam)\n" + "2. click the verification link from Alight Motion\n" + "3. Copy URL in address bar after redirect\n" + "4. Run command:\n" + example(`${prefix}amverif2 ${email}|COPIED_LINK`));
           } catch (err) {
             console.error("AMPREM V2 ERROR:", err?.response?.data || err);
             const errorData = err?.response?.data;
@@ -1982,7 +1982,7 @@ ${global.tekspromosi}
             await xreply(`🔎 *OCR IMAGE*\n` + `━━━━━━━━━━━━━━━━━━\n\n` + `${hasilText}\n\n` + `━━━━━━━━━━━━━━━━━━\n` + `📷 *Source:* Pixhost\n`);
           } catch (err) {
             console.error("OCR ERROR:", err?.response?.data || err);
-            return xreply("❌ OCR processing failed.\n\n" + "Kemungkinan penyebab:\n" + "• Pixhost upload failed\n" + "• the photo could not be read\n" + "• API OCR bermasalah\n" + "• Request timeout");
+            return xreply("❌ OCR processing failed.\n\n" + "Kemungkinan cause:\n" + "• Pixhost upload failed\n" + "• the photo could not be read\n" + "• API OCR having problems\n" + "• Request timeout");
           } finally {
             try {
               if (media && fs.existsSync(media)) {
@@ -2021,7 +2021,7 @@ ${global.tekspromosi}
               return xreply("❌ the website could not be processed.\n" + `Error: ${result.error?.text || "unknown"}`);
             }
             const teks = `✅ *website successfully zipped*
-` + `━━━━━━━━━━━━━━━━━━\n` + `🌐 URL: ${result.url || url}\n` + `📁 File disalin: *${result.copiedFilesAmount ?? 0}*\n` + `📦 Download ZIP:\n${result.downloadUrl}\n` + `━━━━━━━━━━━━━━━━━━\n` + `🤖 Source: Akoya-MD`;
+` + `━━━━━━━━━━━━━━━━━━\n` + `🌐 URL: ${result.url || url}\n` + `📁 File copied: *${result.copiedFilesAmount ?? 0}*\n` + `📦 Download ZIP:\n${result.downloadUrl}\n` + `━━━━━━━━━━━━━━━━━━\n` + `🤖 Source: Akoya-MD`;
             await xreply(teks);
           } catch (err) {
             console.error("WEBTOZIP ERROR:", err?.response?.data || err);
@@ -2251,7 +2251,7 @@ ${e.message}`);
             if (results.length === 0) {
               return xreply(`❌ no Wikipedia results found for: *${query}*`);
             }
-            let teks = `🔎 *WIKIPEDIA SEARCH*\n` + `━━━━━━━━━━━━━━━━━━\n` + `🔍 Query: *${query}*\n` + `📊 Ditemukan: *${results.length}*\n\n`;
+            let teks = `🔎 *WIKIPEDIA SEARCH*\n` + `━━━━━━━━━━━━━━━━━━\n` + `🔍 Query: *${query}*\n` + `📊 Found: *${results.length}*\n\n`;
             results.slice(0, 10).forEach((item, index) => {
               const snippet = String(item.snippet || "no ringkasan").replace(/<[^>]*>/g, "").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
               teks += `*${index + 1}. ${item.title || "Untitled"}*\n` + `🆔 Page ID: ${item.pageid ?? "-"}\n` + `📦 Size: ${item.size ?? "-"}\n` + `📝 Words: ${item.wordcount ?? "-"}\n` + `📖 ${snippet}\n` + `🕒 ${item.timestamp || "-"}\n\n`;
@@ -2285,7 +2285,7 @@ ${e.message}`);
             if (results.length === 0) {
               return xreply(`❌ no group found for: *${query}*`);
             }
-            let teks = `🔎 *SEARCH GROUP*\n` + `━━━━━━━━━━━━━━━━━━\n` + `🔍 Query: *${query}*\n` + `📊 Ditemukan: *${results.length}*\n\n`;
+            let teks = `🔎 *SEARCH GROUP*\n` + `━━━━━━━━━━━━━━━━━━\n` + `🔍 Query: *${query}*\n` + `📊 Found: *${results.length}*\n\n`;
             results.slice(0, 10).forEach((group, index) => {
               teks += `*${index + 1}. ${group.name || "No name"}*\n` + `📝 ${group.description || "no description"}\n` + `📂 Kategori: ${group.category || "-"}\n` + `🌍 Negara: ${group.country || "-"}\n` + `🔗 ${group.url || "-"}\n\n`;
             });
@@ -2318,7 +2318,7 @@ ${e.message}`);
             if (results.length === 0) {
               return xreply(`❌ no app found for: *${query}*`);
             }
-            let teks = `🔎 *HAPPYMOOD SEARCH*\n` + `━━━━━━━━━━━━━━━━━━\n` + `🔍 Query: *${query}*\n` + `📊 Ditemukan: *${results.length}*\n\n`;
+            let teks = `🔎 *HAPPYMOOD SEARCH*\n` + `━━━━━━━━━━━━━━━━━━\n` + `🔍 Query: *${query}*\n` + `📊 Found: *${results.length}*\n\n`;
             results.slice(0, 10).forEach((app, index) => {
               teks += `*${index + 1}. ${app.title || "Unknown"}*\n` + `📱 Version: ${app.version || "-"}\n` + `📦 Ukuran: ${app.size || "-"}\n` + `🛠️ Mod: ${app.mod_status || "no"}\n` + `🔗 URL: ${app.url || "-"}\n\n`;
             });
@@ -3057,10 +3057,10 @@ halo *${m.pushName}*, if you want this script Akoya-MD please read the rules bel
 \`strict warning\`
 - removing the credits is strictly forbidden
 - reselling this script is forbidden because it is 100% free and open source
-- dilarang mengklaim/memiliki script 100%
-- dilarang removing, changing, hiding, or claiming the credits
+- not allowed claiming/has script 100%
+- not allowed removing, changing, hiding, or claiming the credits
 - if you recode, modify, or redistribute the source, *the original credits must remain included*.
-- open source does not mean the credits can be removed. Hormati pembuat and contributor developed source `.trim();
+- open source does not mean the credits can be removed. Hormati maker and contributor developed source `.trim();
           try {
             const media = await prepareWAMessageMedia({
               image: foto
@@ -3207,7 +3207,7 @@ halo *${m.pushName}*, if you want this script Akoya-MD please read the rules bel
               fs.unlinkSync(media);
               media = null;
             } catch {}
-            await xreply("🧹 Menghapus watermark...\n" + "⏳ one moment...");
+            await xreply("🧹 Deleting watermark...\n" + "⏳ one moment...");
             const apiUrl = "https://api.nexray.eu.cc/tools/v1/dewatermark?url=" + encodeURIComponent(imageUrl);
             const response = await axios.get(apiUrl, {
               responseType: "arraybuffer",
@@ -3891,10 +3891,10 @@ ${prefix}tiktokphoto anime kece`);
               return item?.url || item?.image || item?.imageUrl || item?.photo || item?.download || item?.downloadUrl || item?.cover;
             }).filter(url => typeof url === "string" && /^https?:\/\//i.test(url));
             if (!imageUrls.length) {
-              return xreply("❌ Result API ditemukan, but URL fotonya not found.\n\n" + "Response API:\n" + JSON.stringify(data, null, 2).slice(0, 4000));
+              return xreply("❌ Result API found, but URL the photo not found.\n\n" + "Response API:\n" + JSON.stringify(data, null, 2).slice(0, 4000));
             }
             const photos = imageUrls.slice(0, 10);
-            await xreply(`✅ Ditemukan ${imageUrls.length} photo.\n` + `📸 sending ${photos.length} result first...`);
+            await xreply(`✅ Found ${imageUrls.length} photo.\n` + `📸 sending ${photos.length} result first...`);
             for (let i = 0; i < photos.length; i++) {
               try {
                 await client.sendMessage(m.chat, {
@@ -3920,7 +3920,7 @@ ${prefix}tiktokphoto anime kece`);
       case "geminitts":
         {
           if (!text) {
-            return xreply("❌ Masukkan text ingin changed become suara.\n\n" + `example:
+            return xreply("❌ Enter text ingin changed become suara.\n\n" + `example:
 ${prefix}geminitts hello how are you`);
           }
           try {
@@ -4173,7 +4173,7 @@ ${e.message}`);
             await xreply(teks);
           } catch (err) {
             console.error("TIKTOK EARNINGS ERROR:", err?.response?.data || err);
-            return xreply("❌ failed to fetch data TikTok.\n" + "Pastikan username correct or the API is having issues.");
+            return xreply("❌ failed to fetch data TikTok.\n" + "Make sure username correct or the API is having issues.");
           }
         }
         break;
@@ -4190,9 +4190,9 @@ ${e.message}`);
 ${prefix + command} https://linkvertise.com/access/1239053/55d5Jdz1eY7h`);
             }
             if (!/^https?:\/\//i.test(text)) {
-              return reply("❌ Masukkan URL valid.");
+              return reply("❌ Enter URL valid.");
             }
-            Reply("⏳ membypass URL...");
+            Reply("⏳ Bypassing the URL...");
             const axios = require("axios");
             const api = `https://bintangapi.my.id/api/tools/bypassurl2?url=${encodeURIComponent(text)}`;
             const {
@@ -4253,7 +4253,7 @@ ${e.response?.data?.message || e.message}`);
 example: ${prefix + command} https://subs4unlock.id/xxxxx`);
           }
           try {
-            await xreply("⏳ Memproses...");
+            await xreply("⏳ Processing...");
             const apiUrl = `https://api.theresav.biz.id/bypass/subs4unlock?url=${encodeURIComponent(text)}&apikey=SurGG`;
             const res = await fetch(apiUrl);
             const data = await res.json();
@@ -4322,7 +4322,7 @@ ${prefix + command} 62812xxxx,62813xxxx`);
             let hasil = `*bio check result*
 
 `;
-            hasil += `✅ Total Dicek : ${numbers.length}\n`;
+            hasil += `✅ Total Checked : ${numbers.length}\n`;
             hasil += `📝 with bio: ${withBio.length}\n`;
             hasil += `📵 No bio / Privacy : ${noBio.length}\n\n`;
             if (withBio.length) {
@@ -4491,10 +4491,10 @@ Error: ${e}`
         {
           let q = m.quoted ? m.quoted : m;
           let mime = (q.msg || q).mimetype || '';
-          if (!/image/.test(mime)) return xreply("please reply to a photo for dijadikan photo profil!");
+          if (!/image/.test(mime)) return xreply("please reply to a photo for turned into photo profil!");
           if (!text) return xreply("wrong format!\nexample: *fakeprofil Akoya-MD|+628xxx|Akoya-MD*");
           let [username, nomor, bio] = text.split('|');
-          if (!username || !nomor || !bio) return xreply("Format must using pemisah |\nexample: *Name|number|Bio*");
+          if (!username || !nomor || !bio) return xreply("Format must using separator |\nexample: *Name|number|Bio*");
           await xreply("processing, please wait...");
           try {
             const {
@@ -4948,7 +4948,7 @@ Status: ${global.autoClaude[m.chat] ? "ON ✅" : "OFF ❌"}`);
             caption += `*Lokasi:* ${gempa.Wilayah}\n`;
             caption += `*Koordinat:* ${gempa.Lintang} ${gempa.Bujur}\n`;
             caption += `*Potensi:* ${gempa.Potensi}\n`;
-            caption += `*Dirasakan:* ${gempa.Dirasakan}\n\n`;
+            caption += `*Felt:* ${gempa.Dirasakan}\n\n`;
             caption += `Sumber: BMKG (https://www.bmkg.go.id/)`;
             if (gempa.Shakemap) {
               const shakemapUrl = `https://data.bmkg.go.id/DataMKG/TEWS/${gempa.Shakemap}`;
@@ -5126,7 +5126,7 @@ example:
             }
             quote = quote.trim();
             author = author ? author.trim() : "@Akoya-MD";
-            await xreply("⏳ Membuat fake motivasi...");
+            await xreply("⏳ Creating fake motivation...");
             const bg = await loadImage("https://img2.pixhost.to/images/8609/738395416_rafaofficial.jpg");
             const canvas = createCanvas(bg.width, bg.height);
             const ctx = canvas.getContext("2d");
@@ -5192,7 +5192,7 @@ example:
       case "readviewonce":
         {
           if (!isOwner) return m.reply("❌ this feature can only be used by the bot owner!");
-          if (!m.quoted) return m.reply(example("by replying pesannya"));
+          if (!m.quoted) return m.reply(example("by replying its message"));
           let msg = m.quoted.message;
           let type = Object.keys(msg)[0];
           if (!msg[type].viewOnce) return m.reply("that message is not a view-once!");
@@ -5671,7 +5671,7 @@ example:
       case 'fakewindos':
         {
           try {
-            if (!text) return xreply("Masukkan text!");
+            if (!text) return xreply("Enter text!");
             const {
               createCanvas,
               loadImage,
@@ -5914,7 +5914,7 @@ ${prefix + command} what is the ruling on being handsome like noxXza, dear ustaz
           try {
             let nama = args.join(" ");
             if (!nama) {
-              return xreply("❌ Masukkan name!\n\n" + "how to use:\n" + ".fakenasa name you\n\n" + "example:\n" + ".fakenasa Akoya-MD");
+              return xreply("❌ Enter name!\n\n" + "how to use:\n" + ".fakenasa name you\n\n" + "example:\n" + ".fakenasa Akoya-MD");
             }
             let url = `https://api-nanzz.my.id/docs/api/maker/sertifikat-nasa.php?nama=${encodeURIComponent(nama)}`;
             let res = await axios.get(url, {
@@ -5939,7 +5939,7 @@ name: ${nama}`
         {
           if (!text) {
             return xreply(`📩 *Fake NGL Generator*\n\n` + `example:
-${prefix + command} Gw sebenarnya ultramen`);
+${prefix + command} Gw actually ultramen`);
           }
           try {
             await xreply("⏳ one moment, creating Fake NGL...");
@@ -6060,7 +6060,7 @@ ${prefix + command} name|title|script|telegram`);
         {
           try {
             if (!text) {
-              return xreply(`❌ Nickname not yet diisi
+              return xreply(`❌ Nickname not yet filled
 
 example:
 ${prefix}fakelobyml Akoya-MD`);
@@ -6154,7 +6154,7 @@ ${errorMessage}`);
           let q = m.quoted;
           if (!q) {
             return client.sendMessage(m.chat, {
-              text: "ℹ️ how to use:\nreply to an image then type *.fakeml teksnya*"
+              text: "ℹ️ how to use:\nreply to an image then type *.fakeml the text*"
             }, {
               quoted: global.fcontacts
             });
@@ -6162,7 +6162,7 @@ ${errorMessage}`);
           let mime = (q.msg || q).mimetype || '';
           if (!mime.startsWith('image/')) {
             return client.sendMessage(m.chat, {
-              text: "ℹ️ how to use:\nreply to an image then type *.fakeml teksnya*"
+              text: "ℹ️ how to use:\nreply to an image then type *.fakeml the text*"
             }, {
               quoted: m
             });
@@ -6646,7 +6646,7 @@ ${err.message || err}`);
         {
           try {
             if (!text) return xreply(example('https://youtube.com/watch?v=...'));
-            if (!text.includes('youtu')) return xreply('⚠️ Masukan Link YouTube\n\n.ytmp3 <link>');
+            if (!text.includes('youtu')) return xreply('⚠️ Enter Link YouTube\n\n.ytmp3 <link>');
             await client.sendMessage(m.chat, {
               react: {
                 text: '⏳',
@@ -6734,7 +6734,7 @@ ${err.message || err}`);
               link = parts[0];
               format = parts[1] || '720';
             }
-            if (!link.includes('youtu')) return xreply('⚠️ Masukan Link YouTube\n\n.ytmp4 <link>|<format>\nFormat: 144, 240, 360, 720, 1080');
+            if (!link.includes('youtu')) return xreply('⚠️ Enter Link YouTube\n\n.ytmp4 <link>|<format>\nFormat: 144, 240, 360, 720, 1080');
             const formats = ['144', '240', '360', '720', '1080'];
             if (!formats.includes(format)) return xreply(`⚠️ Format available: ${formats.join(', ')}`);
             await client.sendMessage(m.chat, {
@@ -7333,7 +7333,7 @@ ${video.snippet.description?.slice(0, 1000) || "no description."}`;
         break;
       case 'deepimg':
         {
-          if (!text) return xreply("Masukkan prompt image.");
+          if (!text) return xreply("Enter prompt image.");
           xreply("processing the image, please wait...");
           try {
             const axios = require('axios');
@@ -7408,9 +7408,9 @@ ${video.snippet.description?.slice(0, 1000) || "no description."}`;
               attemptCount++;
             }
             if (successCount < maxStickers) {
-              xreply(`successfully sent ${successCount} sticker from ${maxStickers} dicoba`);
+              xreply(`successfully sent ${successCount} sticker from ${maxStickers} tried`);
             } else if (response.data.sticker_url.length > 10) {
-              xreply(`Showing ${successCount} sticker random from ${response.data.sticker_url.length} sticker ditemukan`);
+              xreply(`Showing ${successCount} sticker random from ${response.data.sticker_url.length} sticker found`);
             }
           } catch (e) {
             console.error('Error in stickersearch:', e);
@@ -7601,7 +7601,7 @@ ${video.snippet.description?.slice(0, 1000) || "no description."}`;
         {
           const nama = text || m.pushName || "you";
           const persen = Math.floor(Math.random() * 101);
-          const komentar = ["Normal... like a brick.", "A bit odd, but still worth talking to.", " starting to act up, please handle it.", "wow, this is absolutely hilarious.", 'God tier... crazy but cool.', "Crazy, even the bot gets a headache reading your chat.", "Kayaknya enggak can diselamatkan 😭", "you are sane, but only while asleep.", "Quietly insane... scary.", 'Insane with a professional style. Respect.'];
+          const komentar = ["Normal... like a brick.", "A bit odd, but still worth talking to.", " starting to act up, please handle it.", "wow, this is absolutely hilarious.", 'God tier... crazy but cool.', "Crazy, even the bot gets a headache reading your chat.", "It seems enggak can saved 😭", "you are sane, but only while asleep.", "Quietly insane... scary.", 'Insane with a professional style. Respect.'];
           const kata = komentar[Math.floor(Math.random() * komentar.length)];
           xreply(`🧠 *today's insanity test*
 
@@ -7610,7 +7610,7 @@ ${video.snippet.description?.slice(0, 1000) || "no description."}`;
         break;
       case 'jodoh':
         {
-          if (!text.includes('|')) return xreply("example:.jodoh John|Jane");
+          if (!text.includes('|')) return xreply("example:.match John|Jane");
           const [nama1, nama2] = text.split('|');
           const persen = Math.floor(Math.random() * 100) + 1;
           xreply(`❤️ Compatibility between *${nama1.trim()}* and *${nama2.trim()}* is *${persen}%*`);
@@ -7676,13 +7676,13 @@ example: *${command} Hilman*`);
       case 'cekjarak':
       case 'cekrute':
         {
-          if (!text.includes(',')) return xreply("wrong format! Usage: jarak [origin city],[destination city]\nexample: jarak bekasi,madiun");
+          if (!text.includes(',')) return xreply("wrong format! Usage: distance [origin city],[destination city]\nexample: distance bekasi,madiun");
           let [from, to] = text.split(',').map(v => v.trim());
           let biyumaunyepong = `https://api.vreden.my.id/api/tools/jarak?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
           try {
             let response = await fetch(biyumaunyepong);
             let data = await response.json();
-            if (data.status !== 200) return xreply("failed to get data distance! Pastikan kota dimasukkan correct.");
+            if (data.status !== 200) return xreply("failed to get data distance! Make sure kota inserted correct.");
             let result = data.result;
             let msg = `📍 *Information Distance* 📍
  
@@ -7792,7 +7792,7 @@ ${result.arah_penunjuk_jalan.map(step => `🚘 ${step.instruksi} (${step.jarak})
                   interactiveMessage: proto.Message.InteractiveMessage.fromObject({
                     body: proto.Message.InteractiveMessage.Body.fromObject({
                       text: `
-Koleksi Cecan from Berbagai Negara
+Koleksi Cecan from Various Negara
 
 • Indonesia 🇮🇩
 • China 🇨🇳
@@ -7867,7 +7867,7 @@ Koleksi Cecan from Berbagai Negara
             // no profile picture to show: fall back to the bundled brand art
             ppthumb = /^https?:\/\//.test(String(global.image.menu)) ? global.image.menu : null;
           }
-          const roastList = [`@user, sometimes I think, you are like a 1-bar signal in the middle of a forest—useless, but always showing up when no one needs you.`, `@user, you like charger 15 ribuan—can dipake, tapi bikin panas and ngerusak semuanya.`, `@user, if your brain were sold on a marketplace, would probably be listed under "rusak parah, sold by the kilo".`, `@user, you like WiFi tetangga—kelihatan tapi nggak can dipake. Ngeselin!`, `@user, if ngomong like a remixed song—lots of noise but no clear point.`, `@user, you not exactly toxic — more like hazardous waste that should be quarantined for 40 years.`, `@user, your lifestyle is like a 9th-semester thesis: going nowhere, full of excuses, zero results.`, `@user, you are like an unsolvable CAPTCHA, only ever annoying people.`, `@user, if you were a game character, you would be the NPC handing out failed quests from the start.`, `@user, honestly... every time you open your mouth, the room's IQ drops 10 points.`, `@user, muka you like error 404—nggak ketemu solusinya, bikin stres.`, `@user, as an animal, you would definitely be a mythical creature, nobody understands your existence.`, `@user, you are like a 5 AM alarm on a holiday, pointless, just ruins peoples sleep.`, `@user, your IQ is like red ping: high but useless.`, `@user, you are like a corrupt file — opening it is infuriating, deleting it wastes your data.`, `@user, if being a burden were a contest, you would be champion five years running.`, `@user, jokes you like sinetron azab—maksa, basi, tapi tetep aja nongol.`, `@user, ngomong sama you like ngisi CAPTCHA terus failed, muter-muter gak jelas.`, `@user, if your laugh were recorded, it could be used to scare off ghosts.`, `@user, gaya you like intro YouTuber 2012—lebay, norak, and pengen skip.`, `@user, you are like a broken charger, it connects, but it shocks peoples feelings.`, `@user, every time you show up, the vibe errors out like Windows—tiba-tiba, bikin panik, and nyusahin.`, `@user, you are like a deactivated WiFi password, still remembered, but useless.`, `@user, you are like a family WhatsApp group: busy, but pointless.`, `@user, if you were an app, you would need a daily update and still lag.`, `@user, your face is like a zip file, small but full of heavy stuff.`, `@user, your vibes are like a 1% battery, just waiting to be drained by lazy people.`, `@user, if you were a soap opera, it would be titled *"Rebel Child Who Forgot to Update Their Brain."*`, `@user, you are like a failed download, you waited forever, then it errored anyway.`, `@user, your brain is like a free server: down every time it is needed.`, `@user, if you were an emoji, you would be "buffering".`, `@user, IQ you like koneksi WiFi publik—all can pake, tapi nggak can diandalkan.`, `@user, every time you speak, grammar itself weeps.`, `@user, as a movie, you would get 1 star from both netizens and the supernatural.`, `@user, your jokes are like a 2010 Facebook status: dry, dated, and embarrassing.`];
+          const roastList = [`@user, sometimes I think, you are like a 1-bar signal in the middle of a forest—useless, but always showing up when no one needs you.`, `@user, you like charger 15 ribuan—can used, tapi bikin panas and ngerusak everything.`, `@user, if your brain were sold on a marketplace, would probably be listed under "rusak parah, sold by the kilo".`, `@user, you like WiFi tetangga—kelihatan tapi nggak can used. Ngeselin!`, `@user, if ngomong like a remixed song—lots of noise but no clear point.`, `@user, you not exactly toxic — more like hazardous waste that should be quarantined for 40 years.`, `@user, your lifestyle is like a 9th-semester thesis: going nowhere, full of excuses, zero results.`, `@user, you are like an unsolvable CAPTCHA, only ever annoying people.`, `@user, if you were a game character, you would be the NPC handing out failed quests from the start.`, `@user, honestly... every time you open your mouth, the room's IQ drops 10 points.`, `@user, muka you like error 404—nggak ketemu the solution, bikin stres.`, `@user, as an animal, you would definitely be a mythical creature, nobody understands your existence.`, `@user, you are like a 5 AM alarm on a holiday, pointless, just ruins peoples sleep.`, `@user, your IQ is like red ping: high but useless.`, `@user, you are like a corrupt file — opening it is infuriating, deleting it wastes your data.`, `@user, if being a burden were a contest, you would be champion five years running.`, `@user, jokes you like sinetron azab—maksa, basi, tapi tetep aja nongol.`, `@user, ngomong sama you like ngisi CAPTCHA terus failed, muter-muter gak jelas.`, `@user, if your laugh were recorded, it could be used to scare off ghosts.`, `@user, gaya you like intro YouTuber 2012—lebay, norak, and pengen skip.`, `@user, you are like a broken charger, it connects, but it shocks peoples feelings.`, `@user, every time you show up, the vibe errors out like Windows—tiba-tiba, bikin panik, and nyusahin.`, `@user, you are like a deactivated WiFi password, still remembered, but useless.`, `@user, you are like a family WhatsApp group: busy, but pointless.`, `@user, if you were an app, you would need a daily update and still lag.`, `@user, your face is like a zip file, small but full of heavy stuff.`, `@user, your vibes are like a 1% battery, just waiting to be drained by lazy people.`, `@user, if you were a soap opera, it would be titled *"Rebel Child Who Forgot to Update Their Brain."*`, `@user, you are like a failed download, you waited forever, then it errored anyway.`, `@user, your brain is like a free server: down every time it is needed.`, `@user, if you were an emoji, you would be "buffering".`, `@user, IQ you like koneksi WiFi publik—all can pake, tapi nggak can reliable.`, `@user, every time you speak, grammar itself weeps.`, `@user, as a movie, you would get 1 star from both netizens and the supernatural.`, `@user, your jokes are like a 2010 Facebook status: dry, dated, and embarrassing.`];
           const roastText = roastList[Math.floor(Math.random() * roastList.length)].replace(/@user/g, `@${orang.split('@')[0]}`);
           try {
             await client.sendMessage(orang, {
@@ -7969,7 +7969,7 @@ Koleksi Cecan from Berbagai Negara
           atas = atas || "-";
           bawah = bawah || "-";
           let buffer = await client.downloadAndSaveMediaMessage(qmsg);
-          if (!buffer) return reply("❌ failed mengunduh media!");
+          if (!buffer) return reply("❌ failed downloading media!");
           const FormData = require("form-data");
           const form = new FormData();
           form.append("reqtype", "fileupload");
@@ -8070,7 +8070,7 @@ Koleksi Cecan from Berbagai Negara
 • Cyan: #00FFFF
 • Magenta: #FF00FF
 
-*Lainnya:*
+*Others:*
 • Abu: #808080
 • Navy: #000080
 • Orange: #FFA500
@@ -8162,7 +8162,7 @@ bratimg2 Halo World | #FF0000 | #FFFFFF
               });
             } catch (e) {
               console.error(e);
-              xreply(`[! ] failed mengunggah file. Error: ${e.message}`);
+              xreply(`[! ] failed uploading file. Error: ${e.message}`);
             }
           } else {
             Reply(`File *.webp* is not supported. send or reply with another file with the caption *${prefix + command}*`);
@@ -8305,7 +8305,7 @@ ${prefix + command} https://www.instagram.com/reel/DaH1GCUvqVn/?igsh=xxxxx`);
       case 'cekkodam':
         {
           if (!text) return reply("type your name");
-          const khodam = pickRandom(["Kaleng Cat Avian", "Pipa Rucika", "King black", "Two-door wardrobe", "Kacang Hijau", "Kulkas mini", "Burung beo", "Air", "Api", "Batu", "Magnet", "Sempak", "Botol Tupperware", "Badut Mixue", "Sabun GIV", "Sandal Swallow", "Jarjit", "Ijat", "Fizi", "Mail", "Ehsan", "Upin", "Ipin", "sungut lele", "Tok Dalang", "Opah", "Opet", "Alul", "Pak Vinsen", "Maman Resing", "Pak RT", "ETI admin", "Bung Towel", "Lumpia Basah", "Bjorka", "Hacker", "Martabak Manis", "Baso Tahu", "Tahu Gejrot", "Dimsum", "Seblak", "Aromanis", "Gelembung sabun", "Kuda", "Seblak Ceker", "Telor Gulung", "Tahu Aci", "Tempe Mendoan", "Nasi Kucing", "Kue Cubit", "Tahu Sumedang", "Nasi Uduk", "Wedang Ronde", "Kerupuk Udang", "Cilok", "Cilung", "Kue Sus", "Jasuke", "Seblak Makaroni", "Sate Padang", "Sayur Asem", "Kromboloni", "Marmut Pink", "Belalang Mullet", "Kucing Oren", "Lintah Terbang", "Singa Paddle Pop", "Macan Cisewu", "Vario Mber", "Beat Mber", "Supra Geter", "Oli Samping", "Knalpot Racing", "Jus Stroberi", "Jus Alpukat", "Alpukat Kocok", "Es Kopyor", "Es Jeruk", "@adiwajshing/baileys", "chalk", "gradient-string", "@adiwajshing", "d-scrape", "undefined", "cannot read properties", "performance-now", "os", "node-fetch", "form-data", "axios", "util", "fs-extra", "scrape-primbon", "child_process", "emoji-regex", "check-disk-space", "perf_hooks", "moment-timezone", "cheerio", "fs", "process", "require( . . . )", "import ... from ...", "rate-overlimit", "Cappucino Cincau", "Jasjus Melon", "Teajus Apel", "Pop ice Mangga", "Teajus Gulabatu", "Air Selokan", "Air Kobokan", "TV Tabung", "Keran Air", "Pot lid", "Kotak Amal", "Thermos lid", "Bottle cap", "Kresek Item", "Kepala Casan", "Ban Serep", "Kursi Lipat", "Kursi Goyang", "Kulit Pisang", "Warung Madura", "Gorong-gorong"]);
+          const khodam = pickRandom(["Kaleng Cat Avian", "Pipa Rucika", "King black", "Two-door wardrobe", "Kacang Hijau", "Kulkas mini", "Burung beo", "Air", "Api", "Batu", "Magnet", "Sempak", "Botol Tupperware", "Badut Mixue", "Sabun GIV", "Sandal Swallow", "Jarjit", "Ijat", "Fizi", "Mail", "Ehsan", "Upin", "Ipin", "sungut lele", "Tok Dalang", "Opah", "Opet", "Alul", "Pak Vinsen", "Maman Resing", "Pak RT", "ETI admin", "Bung Towel", "Lumpia Basah", "Bjorka", "Hacker", "Martabak Manis", "Baso Tahu", "Tahu Gejrot", "Dimsum", "Seblak", "Aromanis", "Gelembung sabun", "Kuda", "Seblak Ceker", "Telor Gulung", "Tahu Aci", "Tempe Mendoan", "Nasi Kucing", "Kue Cubit", "Tahu Sumedang", "Nasi Uduk", "Wedang Ronde", "Kerupuk Udang", "Cilok", "Cilung", "Kue Sus", "Jasuke", "Seblak Makaroni", "Sate Padang", "Sayur Asem", "Kromboloni", "Marmut Pink", "Belalang Mullet", "Kucing Oren", "Lintah Flying", "Singa Paddle Pop", "Macan Cisewu", "Vario Mber", "Beat Mber", "Supra Geter", "Oli Samping", "Knalpot Racing", "Jus Stroberi", "Jus Alpukat", "Alpukat Kocok", "Es Kopyor", "Es Jeruk", "@adiwajshing/baileys", "chalk", "gradient-string", "@adiwajshing", "d-scrape", "undefined", "cannot read properties", "performance-now", "os", "node-fetch", "form-data", "axios", "util", "fs-extra", "scrape-primbon", "child_process", "emoji-regex", "check-disk-space", "perf_hooks", "moment-timezone", "cheerio", "fs", "process", "require( . . . )", "import ... from ...", "rate-overlimit", "Cappucino Cincau", "Jasjus Melon", "Teajus Apel", "Pop ice Mangga", "Teajus Gulabatu", "Air Selokan", "Air Kobokan", "TV Tabung", "Keran Air", "Pot lid", "Kotak Amal", "Thermos lid", "Bottle cap", "Kresek Item", "Kepala Casan", "Ban Serep", "Kursi Lipat", "Kursi Goyang", "Kulit Pisang", "Warung Madura", "Gorong-gorong"]);
           const response = `Khodam mu is: *${khodam}*`;
           xreply(response);
         }
@@ -8335,7 +8335,7 @@ ${prefix + command} https://www.instagram.com/reel/DaH1GCUvqVn/?igsh=xxxxx`);
           let komentar, emoji;
           if (command == 'cekganteng') {
             if (score >= 90) {
-              komentar = 'Gantengnya overload! Bikin cewek-cewek auto salfok!';
+              komentar = 'His looks overload! Bikin cewek-cewek auto salfok!';
               emoji = '🔥👑💯';
             } else if (score >= 75) {
               komentar = 'Fix calon idol K-Pop, visualnya ngalahin artis!';
@@ -8396,7 +8396,7 @@ ${prefix + command} https://www.instagram.com/reel/DaH1GCUvqVn/?igsh=xxxxx`);
       case "del":
         {
           if (!isOwner) return reply(mess.owner);
-          if (!m.quoted) return xreply("reply pesannya");
+          if (!m.quoted) return xreply("reply its message");
           await client.sendMessage(m.chat, {
             delete: {
               remoteJid: m.chat,
@@ -8545,9 +8545,9 @@ Total *${halls.length}* contacts`,
         {
           if (!isOwner) return reply(mess.owner);
           const teks = getJpmText();
-          if (!teks) return xreply(example("teksnya or reply message text"));
+          if (!teks) return xreply(example("the text or reply message text"));
           try {
-            await broadcastJpmGroups("JPM (teks)", () => ({
+            await broadcastJpmGroups("JPM (text)", () => ({
               text: teks
             }));
           } catch (error) {
@@ -8609,7 +8609,7 @@ Total *${halls.length}* contacts`,
             if (onWa.length < 1) return xreply("the number is not registered on WhatsApp");
             const res = await client.groupParticipantsUpdate(m.chat, [input], 'add');
             if (Object.keys(res).length == 0) {
-              return xreply(`success Menambahkan ${input.split("@")[0]} into the group `);
+              return xreply(`success Adding ${input.split("@")[0]} into the group `);
             } else {
               return xreply(JSON.stringify(res, null, 2));
             }
@@ -8680,7 +8680,7 @@ Total *${halls.length}* contacts`,
             if (/promote/.test(command)) action = "Promote";
             await client.groupParticipantsUpdate(m.chat, [target], action.toLowerCase()).then(async () => {
               await client.sendMessage(m.chat, {
-                text: `Sukses ${action.toLowerCase()} @${target.split("@")[0]}`,
+                text: `Success ${action.toLowerCase()} @${target.split("@")[0]}`,
                 mentions: [target]
               }, {
                 quoted: m
@@ -8702,7 +8702,7 @@ Total *${halls.length}* contacts`,
           } else if (teks == "off") {
             if (global.db.groups[m.chat].mute == false) return xreply(`*Mute* in group inactive!`);
             global.db.groups[m.chat].mute = false;
-            return xreply("success mematikan *mute* in group ");
+            return xreply("success disabling *mute* in group ");
           } else return xreply(example("on/off"));
         }
         break;
@@ -8720,7 +8720,7 @@ Total *${halls.length}* contacts`,
           } else if (teks == "off") {
             if (global.db.groups[m.chat].antilink2 == false) return xreply(`*Antilink2* in group inactive!`);
             global.db.groups[m.chat].antilink2 = false;
-            return reply("success mematikan *antilink2* in group ");
+            return reply("success disabling *antilink2* in group ");
           } else return xreply(example("on/off"));
         }
         break;
@@ -8741,7 +8741,7 @@ Total *${halls.length}* contacts`,
             if (global.db.groups[m.chat].antitagsw == false) return xreply(`*Antitagsw* in group inactive!`);
             global.db.groups[m.chat].antitagsw = false;
             global.markDatabaseDirty?.();
-            return reply("success mematikan *antitagsw* in group ");
+            return reply("success disabling *antitagsw* in group ");
           } else return xreply(example("on/off"));
         }
         break;
@@ -8907,7 +8907,7 @@ the bot can only capture stories while it is online, and only from contacts who 
           } else if (teks == "off") {
             if (global.db.groups[m.chat].antilink == false) return xreply(`*Antilink* in group inactive!`);
             global.db.groups[m.chat].antilink = false;
-            return reply("success mematikan *antilink* in group ");
+            return reply("success disabling *antilink* in group ");
           } else return xreply(example("on/off"));
         }
         break;
@@ -8924,7 +8924,7 @@ the bot can only capture stories while it is online, and only from contacts who 
           } else if (teks == "off") {
             if (global.db.groups[m.chat].welcome == false) return reply(`*Welcome* in group inactive!`);
             global.db.groups[m.chat].welcome = false;
-            return reply("success mematikan *welcome* in group ");
+            return reply("success disabling *welcome* in group ");
           } else return xreply(example("on/off"));
         }
         break;
@@ -8993,7 +8993,7 @@ example:.jadibot 628xxx`);
             return xreply("❌ you do not have an active jadibot.");
           }
           try {
-            await xreply("⏹️ *Jadibot dihentikan...*\n\nSession clone will deleted and koneksi will closed.");
+            await xreply("⏹️ *Jadibot stopped...*\n\nSession clone will deleted and koneksi will closed.");
           } catch (error) {}
           await jadibotManager.stop(targetJid, true);
         }
@@ -9076,14 +9076,14 @@ ${e.message}`);
         {
           if (!isOwner) return;
           client.public = true;
-          xreply("success mengganti to mode *public*");
+          xreply("success changing to mode *public*");
         }
         break;
       case "self":
         {
           if (!isOwner) return xreply(mess.owner);
           client.public = false;
-          xreply("success mengganti mode bot become *Self*");
+          xreply("success changing mode bot become *Self*");
         }
         break;
       case "restart":
@@ -9170,14 +9170,14 @@ ${e.message}`);
           if (input2 === global.owner || owners.includes(input) || input === botNumber) return xreply(`number ${input2} already become owner bot!`);
           owners.push(input);
           await fs.writeFileSync("./library/database/owner.json", JSON.stringify(owners, null, 2));
-          xreply(`success menambah owner ✅`);
+          xreply(`success add owner ✅`);
         }
         break;
 
       /// ───────────── [ 𝖯𝖺𝗒𝗆𝖾𝗇𝗍 ] ──────────── ///
       case "pay":
         {
-          const teks = `‼️\`𝖬𝖾𝗍𝗈𝖽𝖾 𝖯𝖾𝗆𝖻𝖺𝗒𝖺𝗋𝖺𝗇\``;
+          const teks = `‼️\`Method Payment\``;
           const deks = `*𝖯𝗂𝖼𝗄 𝗈𝗇𝖾 𝗈𝖿 𝗍𝗁𝖾 𝗉𝖺𝗒𝗆𝖾𝗇𝗍 𝗆𝖾𝗍𝗁𝗈𝖽𝗌 𝖻𝖾𝗅𝗈𝗐. 𝖣𝗈𝗎𝖻𝗅𝖾-𝖼𝗁𝖾𝖼𝗄 𝗍𝗁𝖾 𝖺𝗆𝗈𝗎𝗇𝗍 𝖺𝗇𝖽 𝗍𝗁𝖾 𝖽𝖾𝗌𝗍𝗂𝗇𝖺𝗍𝗂𝗈𝗇 𝖻𝖾𝖿𝗈𝗋𝖾 𝗒𝗈𝗎 𝗌𝖾𝗇𝖽 𝖺𝗇𝗒𝗍𝗁𝗂𝗇𝗀.*
 
 *🔔 𝖤-𝖶𝖺𝗅𝗅𝖾𝗍:*
@@ -9199,14 +9199,14 @@ ${e.message}`);
               buttons: [{
                 buttonId: "menu",
                 buttonText: {
-                  displayText: "💳 choose metode pembayaran"
+                  displayText: "💳 choose method payment"
                 },
                 nativeFlowInfo: {
                   name: "single_select",
                   paramsJson: JSON.stringify({
                     title: "client Payment",
                     sections: [{
-                      title: "choose metode pembayaran",
+                      title: "choose method payment",
                       highlight_label: "〽️",
                       rows: [{
                         header: "",
@@ -9712,7 +9712,7 @@ ${linkGrup}`;
           if (input2 === global.owner || premium.includes(input) || input === botNumber) return xreply(`number ${input2} is already a reseller!`);
           premium.push(input);
           await fs.writeFileSync("./library/database/premium.json", JSON.stringify(premium, null, 2));
-          xreply(`success menambah User kacung jadi Prem ✅`);
+          xreply(`success add User kacung jadi Prem ✅`);
         }
         break;
 
@@ -9726,7 +9726,7 @@ ${linkGrup}`;
           const jidawal = m.chat;
           const data = await client.groupMetadata(m.chat);
           const halls = await data.participants.filter(v => v.id.endsWith('.net')).map(v => v.id);
-          await xreply(`Memproses pushcontacts to *${halls.length}* member group`);
+          await xreply(`Processing pushcontacts to *${halls.length}* member group`);
           for (let mem of halls) {
             if (mem !== botNumber && mem.split("@")[0] !== global.owner) {
               await client.sendMessage(mem, {
@@ -9952,7 +9952,7 @@ total members the message was sent to: ${halls.length}`
       case "jpmch":
         {
           if (!isOwner) return xreply(mess.owner);
-          if (!text && !m.quoted) return xreply(example("Teksnya or reply text"));
+          if (!text && !m.quoted) return xreply(example("The text or reply text"));
           var teks = m.quoted ? m.quoted.text : text;
           let total = 0;
           global.channels ??= loadChannels();
@@ -9986,9 +9986,9 @@ please register channel first.
           xreply(`
 ╭─❰ *𝖲𝖤𝖭𝖳* ❱
 └▢ *𝖬𝖾𝗌𝗌𝖺𝗀𝖾 𝗌𝖾𝗇𝗍*: 
-└▢ *${𝗍𝗈𝗍𝖺𝗅} 𝖢𝗁𝖺𝗇𝗇𝖾𝗅* 
+└▢ *${total} 𝖢𝗁𝖺𝗇𝗇𝖾𝗅* 
 └▢ *𝖲𝗍𝖺𝗍𝗎𝗌*: 𝗌𝗎𝖼𝖼𝖾𝗌𝗌! 
-└▢ *𝖣𝖾𝗅𝖺𝗒: ${𝗀𝗅𝗈𝖻𝖺𝗅.𝖼𝗈𝗈𝗅𝖽𝗈𝗐𝗇}*
+└▢ *𝖣𝖾𝗅𝖺𝗒: ${global.cooldown}*
  `);
         }
         break;
@@ -10003,7 +10003,7 @@ please register channel first.
             teks = qmsg.text || qmsg.body || qmsg.contentText || "";
           }
           if (!teks && !m.quoted) {
-            return xreply(example("Teksnya or reply text/media"));
+            return xreply(example("The text or reply text/media"));
           }
           if (m.quoted) {
             try {
@@ -10115,9 +10115,9 @@ please register channel first.
             const preview = teks ? teks.substring(0, 60) + (teks.length > 60 ? "..." : "") : "no";
             await xreply(`
  ❰ *𝖲𝖤𝖭𝖣𝖨𝖭𝖦* ❱
-> 📝 𝗆𝖾𝗌𝗌𝖺𝗀𝖾: *${𝗉𝗋𝖾𝗏𝗂𝖾𝗐}*
-> 📷 𝖬𝖾𝖽𝗂𝖺   : *${𝗆𝖾𝖽𝗂𝖺𝖡𝗎𝖿𝖿𝖾𝗋 ? 𝗆𝖾𝖽𝗂𝖺𝖳𝗒𝗉𝖾 : "𝗇𝗈"}*
-> 📺 𝖳𝖺𝗋𝗀𝖾𝗍  : *${𝖼𝗁𝖺𝗇𝗇𝖾𝗅𝖨𝖽𝗌.𝗅𝖾𝗇𝗀𝗍𝗁}* 𝖼𝗁𝖺𝗇𝗇𝖾𝗅
+> 📝 𝗆𝖾𝗌𝗌𝖺𝗀𝖾: *${preview}*
+> 📷 𝖬𝖾𝖽𝗂𝖺   : *${mediaBuffer ? mediaType : "no"}*
+> 📺 𝖳𝖺𝗋𝗀𝖾𝗍  : *${channelIds.length}* 𝖼𝗁𝖺𝗇𝗇𝖾𝗅
 _𝖢𝗎𝗋𝗋𝖾𝗇𝗍𝗅𝗒 𝗌𝖾𝗇𝖽𝗂𝗇𝗀 𝗍𝗈 𝖺𝗅𝗅 𝖼𝗁𝖺𝗇𝗇𝖾𝗅_`);
             let xsaluran = 0;
             let xfailed = 0;
@@ -10132,10 +10132,10 @@ _𝖢𝗎𝗋𝗋𝖾𝗇𝗍𝗅𝗒 𝗌𝖾𝗇𝖽𝗂𝗇𝗀 𝗍𝗈 𝖺
                   }
                 });
                 return xreply(`
- ❰ *𝖣𝖨𝖧𝖤𝖭𝖳𝖨𝖪𝖠𝖭 𝖲𝖤𝖭𝖣* ❱
+ ❰ *STOPPED SEND* ❱
 > ▢ success: *${xsaluran}*
 > ▢ failed: *${xfailed}*
-> ▢ Sisa: *${channelIds.length - xsaluran - xfailed}*`);
+> ▢ Remaining: *${channelIds.length - xsaluran - xfailed}*`);
               }
               try {
                 const payload = mediaBuffer ? {
@@ -10163,7 +10163,7 @@ _𝖢𝗎𝗋𝗋𝖾𝗇𝗍𝗅𝗒 𝗌𝖾𝗇𝖽𝗂𝗇𝗀 𝗍𝗈 𝖺
             });
             let xmsg = `╭─❰ *𝖲𝖤𝖭𝖳* ❱
 └▢ *𝖬𝖾𝗌𝗌𝖺𝗀𝖾: 𝗌𝖾𝗇𝗍*: 
-└▢ *${𝗑𝗌𝖺𝗅𝗎𝗋𝖺𝗇} 𝖢𝗁𝖺𝗇𝗇𝖾𝗅* 
+└▢ *${xsaluran} 𝖢𝗁𝖺𝗇𝗇𝖾𝗅* 
 └▢ *𝖲𝗍𝖺𝗍𝗎𝗌: 𝗌𝗎𝖼𝖼𝖾𝗌𝗌! 
 └▢ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋: 𝗆𝗈𝗈𝗇𝗌𝗈𝗇*`;
             if (failedChannels.length > 0) {
@@ -10210,7 +10210,7 @@ _𝖢𝗎𝗋𝗋𝖾𝗇𝗍𝗅𝗒 𝗌𝖾𝗇𝖽𝗂𝗇𝗀 𝗍𝗈 𝖺
       case "addidch":
         {
           if (!isOwner) return xreply(!isOwner);
-          if (!text) return reply("Harap masukkan link channel!");
+          if (!text) return reply("Harap enter link channel!");
           let channelLink = text.trim();
           if (!channelLink.includes("https://whatsapp.com/channel/")) {
             return xreply("link saluran invalid! must berupa link WhatsApp (https://whatsapp.com/channel/...)");
@@ -10226,13 +10226,13 @@ _𝖢𝗎𝗋𝗋𝖾𝗇𝗍𝗅𝗒 𝗌𝖾𝗇𝖽𝗂𝗇𝗀 𝗍𝗈 𝖺
             }
             global.channels.push(res.id);
             saveChannels(global.channels);
-            Reply(`success menambahkan ID Channel *${res.id}* from link:
+            Reply(`success adding ID Channel *${res.id}* from link:
 ${channelLink}
 
 name Channel: ${res.name}`);
           } catch (e) {
             console.error(e);
-            Reply("an error occurred during processing link channel. Pastikan link valid!");
+            Reply("an error occurred during processing link channel. Make sure link valid!");
           }
         }
         break;
@@ -10354,10 +10354,10 @@ name Channel: ${res.name}`);
                 key: m.key
               }
             });
-            await xreply(`🔔 *𝖲𝗎𝖼𝖼𝖾𝖾𝖽 𝖱𝖾𝖺𝖼𝗍 𝖢𝗁𝖺𝗇𝗇𝖾𝗅*
-└╼ *𝗅𝗂𝗇𝗄* : ${rchLink}
-└╼ *𝗋𝖾𝖺𝖼𝗍* : \`${rchEmojis.join(', ')}\`
-└╼ *𝗌𝗍𝖺𝗍𝗎𝗌* : *Sukses*`);
+            await xreply(`🔔 *Succeed React Channel*
+└╼ *link* : ${rchLink}
+└╼ *react* : \`${rchEmojis.join(', ')}\`
+└╼ *status* : *Success*`);
           } catch (rchErr) {
             console.error('[rch-error]', rchErr.response?.data || rchErr.message);
             await client.sendMessage(m.chat, {
@@ -10380,7 +10380,7 @@ name Channel: ${res.name}`);
         {
           try {
             if (!isOwner) return reply(mess.owner);
-            if (!text) return xreply("❌ Masukkan name case!\n\nexample:.getcase menu");
+            if (!text) return xreply("❌ Enter name case!\n\nexample:.getcase menu");
             const caseFilePath = './case.js';
             let caseFileContent = fs.readFileSync(caseFilePath, 'utf8');
             let caseLines = caseFileContent.split('\n');
@@ -10463,7 +10463,7 @@ ${prefix + command} Jakarta|Jakarta Timur|31752331637393|Reyz|24-04-2008 Jakarta
               return xreply(`*⚠️ Missing parameters!*
 
 Required *18 parameters*, but only received *${params.length}*.
-*Pastikan urutan parameter matching example!*`);
+*Make sure urutan parameter matching example!*`);
             }
             const baseURL = 'https://theresapisv3.vercel.app/canvas/ektp';
             const query = new URLSearchParams({
@@ -10804,7 +10804,7 @@ ${e.response?.data?.msg || e.message}`);
           await xreply("⏳ one moment...");
           try {
             let media = await client.downloadAndSaveMediaMessage(qmsg);
-            if (!media) return xreply("❌ failed mengunduh photo!");
+            if (!media) return xreply("❌ failed downloading photo!");
             const {
               ImageUploadService
             } = require("node-upload-images");
@@ -11038,8 +11038,8 @@ example:
 .fakegopay 10000,150,0,Juni`);
             }
             if (isNaN(saldo)) return xreply("the balance must be a number!");
-            if (isNaN(koin)) return xreply("Coins must berupa angka!");
-            if (isNaN(terpakai)) return xreply("Used must berupa angka!");
+            if (isNaN(koin)) return xreply("Coins must in the form of angka!");
+            if (isNaN(terpakai)) return xreply("Used must in the form of angka!");
             let api = `https://api.synoxcloud.xyz/canvas/fake-gopay?saldo=${encodeURIComponent(saldo)}&koin=${encodeURIComponent(koin)}&terpakai=${encodeURIComponent(terpakai)}&bulan=${encodeURIComponent(bulan)}`;
             await client.sendMessage(m.chat, {
               image: {
@@ -11209,7 +11209,7 @@ example:
           if (!teks) {
             return client.sendMessage(m.chat, {
               text: `- usage example:
-${prefix}binary --teks "01001000"\n${prefix}binary --binarycode "Hello"`
+${prefix}binary --text "01001000"\n${prefix}binary --binarycode "Hello"`
             }, {
               quoted: m
             });
@@ -11219,7 +11219,7 @@ ${prefix}binary --teks "01001000"\n${prefix}binary --binarycode "Hello"`
             const tekstobin = teks.startsWith('--binarycode');
             if (!bintoteks && !tekstobin) {
               return client.sendMessage(m.chat, {
-                text: `- Tentukan mode konversi:\n--teks (binary to text)\n--binarycode (text to binary)`
+                text: `- Tentukan mode konversi:\n--text (binary to text)\n--binarycode (text to binary)`
               }, {
                 quoted: m
               });
@@ -11227,7 +11227,7 @@ ${prefix}binary --teks "01001000"\n${prefix}binary --binarycode "Hello"`
             const input = teks.split(' ').slice(1).join(' ').trim();
             if (!input) {
               return client.sendMessage(m.chat, {
-                text: "Masukkan text/binary valid"
+                text: "Enter text/binary valid"
               }, {
                 quoted: m
               });
@@ -11544,12 +11544,12 @@ From: ${message.from || 'Anomali'}\n*Subject :* ${message.subject || 'No Subject
             const fixed = num => (num * 100).toFixed(2);
             if (!res.is_char) return xreply("no characters were detected in that image");
             const teks = `
-*⎣⧉⎤ Karakter terdeteksi is*
+*⎣⧉⎤ Karakter detected is*
 > *Name:* ${res.data.character.name}
-> *Persentase:* ${fixed(res.data.character.list[0].confidence || 0)}%
+> *Percentage:* ${fixed(res.data.character.list[0].confidence || 0)}%
 ${res.data.character.list.length >= 2 ? `
 *⎣⧉⎤ Karakter lain terdeteksi*
-${res.data.character.list.map(it => `> *Nama:* ${it.label}\n> *Persentase:* ${fixed(it.confidence || 0)}%`).join('\n\n')}\n` : ''}
+${res.data.character.list.map(it => `> *Nama:* ${it.label}\n> *Percentage:* ${fixed(it.confidence || 0)}%`).join('\n\n')}\n` : ''}
 *⎣⧉⎤ Prompt*
 ${res.data.prompt}
 
@@ -14297,7 +14297,7 @@ canvas { width: 100%; height: 100%; display: block; background: #1a2332; }
  <button class="ctrl-btn" id="resetBtn">↻ Restart</button>
  </div>
 
- <div class="hint" id="hintText">👆 you vs client · 1 BOOM tersembunyi</div>
+ <div class="hint" id="hintText">👆 you vs client · 1 BOOM hidden</div>
 </div>
 
 <script>
@@ -14324,9 +14324,9 @@ canvas { width: 100%; height: 100%; display: block; background: #1a2332; }
 
  const LEVEL_INFO = {
  easy: { name: 'EASY', desc: '👶 client polos · choose random', aiSkill: 0.0 },
- medium: { name: 'MEDIUM', desc: '🧠 client · 30% menghindar', aiSkill: 0.3 },
- hard: { name: 'HARD', desc: '🔥 client pintar · 60% menghindar', aiSkill: 0.6 },
- master: { name: 'MASTER', desc: '👑 client jenius · 90% menghindar', aiSkill: 0.9 }
+ medium: { name: 'MEDIUM', desc: '🧠 client · 30% avoid', aiSkill: 0.3 },
+ hard: { name: 'HARD', desc: '🔥 client pintar · 60% avoid', aiSkill: 0.6 },
+ master: { name: 'MASTER', desc: '👑 client jenius · 90% avoid', aiSkill: 0.9 }
  };
 
  function initAudio() {
@@ -14390,7 +14390,7 @@ canvas { width: 100%; height: 100%; display: block; background: #1a2332; }
  yourTurn = true;
  updateScore();
  setMsg('🎮 Giliran you — choose angka!', 'you');
- hintText.textContent = '👆 you vs client · 1 BOOM tersembunyi';
+ hintText.textContent = '👆 you vs client · 1 BOOM hidden';
  renderGrid();
  }
 

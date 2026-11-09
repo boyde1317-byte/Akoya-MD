@@ -247,7 +247,7 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
       });
       return {
         ok: false,
-        message: `❌ failed memulai Jadibot: ${error?.message || error}`
+        message: `❌ failed to start jadibot: ${error?.message || error}`
       };
     }
   }
@@ -507,7 +507,7 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
     if (!requesterNumber) {
       return {
         ok: false,
-        message: "❌ Pengirim no jadibot process found."
+        message: "❌ No running jadibot process found for that sender."
       };
     }
     let candidate = null;
