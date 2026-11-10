@@ -1,0 +1,134 @@
+{
+  "games": {
+    "sonic": {
+      "file": "sonic.html",
+      "title": "Sonic Sprint 🦔",
+      "desc": "Endless runner, tap to jump",
+      "generated": true
+    },
+    "geometry": {
+      "file": "geometry.html",
+      "title": "Geometry Dash 🔺",
+      "desc": "Jump the spikes, keep the beat",
+      "generated": true
+    },
+    "stickman": {
+      "file": "stickman.html",
+      "title": "Stickman Run 🏃",
+      "desc": "One tap, endless rooftops",
+      "generated": true
+    },
+    "racing": {
+      "file": "racing.html",
+      "title": "Turbo Racing 🏁",
+      "desc": "Three lanes, no brakes",
+      "generated": true
+    },
+    "arrow": {
+      "file": "arrow.html",
+      "title": "Arrow Dodge ➡️",
+      "desc": "Four lanes of incoming arrows",
+      "generated": true
+    },
+    "flappy": {
+      "file": "flappy.html",
+      "title": "Flappy Bird 🐤",
+      "desc": "Tap through the gaps",
+      "generated": true
+    },
+    "angrybirds": {
+      "file": "angrybirds.html",
+      "title": "Angry Birds 🐦",
+      "desc": "Pull back, let go, flatten the pigs",
+      "generated": true
+    },
+    "mortal": {
+      "file": "mortal.html",
+      "title": "Mortal Duel ⚔️",
+      "desc": "Strike on the green, dodge the rest",
+      "generated": true
+    },
+    "snake": {
+      "file": "snake.html",
+      "title": "Snake 🐍",
+      "desc": "Swipe to steer, eat the apple",
+      "generated": true
+    },
+    "snake-rimba": {
+      "file": "snake-rimba.html",
+      "title": "Snake Rimba 🌿",
+      "desc": "The jungle variant",
+      "alias": "rimba",
+      "generated": true
+    },
+    "tetris": {
+      "file": "tetris.html",
+      "title": "Tetris 🟦",
+      "desc": "Stack, rotate, clear a row",
+      "generated": true
+    },
+    "puzzle": {
+      "file": "puzzle.html",
+      "title": "Slide Puzzle 🧩",
+      "desc": "Order the tiles 1 to 8",
+      "generated": true
+    },
+    "memory-match": {
+      "file": "memory-match.html",
+      "title": "Memory Match 🃏",
+      "desc": "Eight pairs, one memory",
+      "generated": true
+    },
+    "mahjong": {
+      "file": "mahjong.html",
+      "title": "Mahjong Pairs 🀄",
+      "desc": "Match the tiles in pairs",
+      "generated": true
+    },
+    "tebakangka": {
+      "file": "tebakangka.html",
+      "title": "Guess the Number 🎲",
+      "desc": "1 to 100 in seven tries",
+      "alias": "guess",
+      "generated": true
+    },
+    "chess": {
+      "file": "chess.html",
+      "title": "Mini Chess ♟️",
+      "desc": "Two-player chess board"
+    },
+    "ttc": {
+      "file": "ttc.html",
+      "title": "Tic-Tac-Toe ❌⭕",
+      "desc": "Classic three in a row"
+    },
+    "dino": {
+      "file": "dino.html",
+      "title": "Dino Runner 🦖",
+      "desc": "Endless runner, tap to jump"
+    },
+    "mbim": {
+      "file": "mbim.html",
+      "title": "Highway Rush 🏎️",
+      "desc": "Dodge traffic at full speed",
+      "alias": "highway"
+    },
+    "plane": {
+      "file": "plane.html",
+      "title": "Space Rush 🚀",
+      "desc": "Pilot through the asteroid field",
+      "alias": "spacerush"
+    },
+    "calc": {
+      "file": "calc.html",
+      "title": "Akoya Calc 🧮",
+      "desc": "Full calculator inside the chat"
+    },
+    "monitor": {
+      "file": "monitor.html",
+      "title": "Server Monitor 📡",
+      "desc": "Live stats for this host",
+      "template": true
+    }
+  }
+}

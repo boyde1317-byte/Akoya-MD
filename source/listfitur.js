@@ -481,6 +481,14 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}ttc
 │ ├─ ${prefix}calc
 │ ├─ ${prefix}monitor
+│ ├─ ${prefix}sonic
+│ ├─ ${prefix}geometry
+│ ├─ ${prefix}stickman
+│ ├─ ${prefix}racing
+│ ├─ ${prefix}arrow
+│ ├─ ${prefix}angrybirds
+│ ├─ ${prefix}mortal
+│ ├─ ${prefix}mahjong
 │ └─ ${prefix}htmlgame
 │ └────────
 
@@ -3229,6 +3237,14 @@ async function gamemenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}ttc
 │ ├─ ${prefix}calc
 │ ├─ ${prefix}monitor
+│ ├─ ${prefix}sonic
+│ ├─ ${prefix}geometry
+│ ├─ ${prefix}stickman
+│ ├─ ${prefix}racing
+│ ├─ ${prefix}arrow
+│ ├─ ${prefix}angrybirds
+│ ├─ ${prefix}mortal
+│ ├─ ${prefix}mahjong
 │ └─ ${prefix}htmlgame
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {

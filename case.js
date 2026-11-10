@@ -1243,9 +1243,32 @@ ${global.tekspromosi}
       const getPart = type => parts.find(part => part.type === type)?.value || '';
       return `${getPart('weekday')}, ${getPart('day')} - ${getPart('month')} - ${getPart('year')}`;
     })();
+    /// ───────────── [ 𝖧𝖳𝖬𝖫 𝖦𝖺𝗆𝖾𝗌 ] ──────────── ///
+    // Cards rendered by WhatsApp itself from a vendored HTML payload. Kept ahead of the
+    // switch so `.chess` and friends cannot collide with a plain-text case.
     /// ───────────── [ 𝖦𝖺𝗆𝖾𝗌 ] ──────────── ///
     // Kept outside the switch: the games live in library/games.js and each one
     // answers from its own per-chat state, so `.snake up` is just another turn.
+    if (global.htmlGameCommands && typeof global.htmlGameCommands[command] === 'function') {
+      try {
+        await global.htmlGameCommands[command]({
+          client,
+          m,
+          textGames: global.games,
+          text,
+          q,
+          prefix,
+          command,
+          reply,
+          xreply
+        });
+      } catch (error) {
+        console.error(`[htmlgame:${command}]`, util.format(error));
+        await reply(`\`.${command}\` could not open: ${error?.message || error}`);
+      }
+      return;
+    }
+
     if (global.games && typeof global.games[command] === 'function') {
       try {
         await global.games[command]({
@@ -1268,27 +1291,6 @@ ${global.tekspromosi}
       } catch (error) {
         console.error(`[game:${command}]`, util.format(error));
         await reply(`\`.${command}\` hit an error: ${error?.message || error}`);
-      }
-      return;
-    }
-    /// ───────────── [ 𝖧𝖳𝖬𝖫 𝖦𝖺𝗆𝖾𝗌 ] ──────────── ///
-    // Cards rendered by WhatsApp itself from a vendored HTML payload. Kept ahead of the
-    // switch so `.chess` and friends cannot collide with a plain-text case.
-    if (global.htmlGameCommands && typeof global.htmlGameCommands[command] === 'function') {
-      try {
-        await global.htmlGameCommands[command]({
-          client,
-          m,
-          text,
-          q,
-          prefix,
-          command,
-          reply,
-          xreply
-        });
-      } catch (error) {
-        console.error(`[htmlgame:${command}]`, util.format(error));
-        await reply(`\`.${command}\` could not open: ${error?.message || error}`);
       }
       return;
     }
