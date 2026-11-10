@@ -18,6 +18,9 @@ const {
 const JsConfuser = require('js-confuser');
 const speed = require('performance-now');
 global.games = require('./library/games');
+const htmlGameLib = require('./library/htmlgames');
+global.htmlGameCommands = htmlGameLib.commands;
+global.htmlGames = htmlGameLib.HTML_GAMES;
 const moment = require("moment-timezone");
 const nou = require("node-os-utils");
 const cheerio = require('cheerio');
@@ -1265,6 +1268,27 @@ ${global.tekspromosi}
       } catch (error) {
         console.error(`[game:${command}]`, util.format(error));
         await reply(`\`.${command}\` hit an error: ${error?.message || error}`);
+      }
+      return;
+    }
+    /// ───────────── [ 𝖧𝖳𝖬𝖫 𝖦𝖺𝗆𝖾𝗌 ] ──────────── ///
+    // Cards rendered by WhatsApp itself from a vendored HTML payload. Kept ahead of the
+    // switch so `.chess` and friends cannot collide with a plain-text case.
+    if (global.htmlGameCommands && typeof global.htmlGameCommands[command] === 'function') {
+      try {
+        await global.htmlGameCommands[command]({
+          client,
+          m,
+          text,
+          q,
+          prefix,
+          command,
+          reply,
+          xreply
+        });
+      } catch (error) {
+        console.error(`[htmlgame:${command}]`, util.format(error));
+        await reply(`\`.${command}\` could not open: ${error?.message || error}`);
       }
       return;
     }

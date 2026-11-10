@@ -477,6 +477,11 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}snake-rimba
 │ ├─ ${prefix}snake
 │ ├─ ${prefix}tetris
+│ ├─ ${prefix}chess
+│ ├─ ${prefix}ttc
+│ ├─ ${prefix}calc
+│ ├─ ${prefix}monitor
+│ └─ ${prefix}htmlgame
 │ └────────
 
 □ ./Quote.js
@@ -3220,6 +3225,11 @@ async function gamemenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}snake-rimba
 │ ├─ ${prefix}snake
 │ ├─ ${prefix}tetris
+│ ├─ ${prefix}chess
+│ ├─ ${prefix}ttc
+│ ├─ ${prefix}calc
+│ ├─ ${prefix}monitor
+│ └─ ${prefix}htmlgame
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
