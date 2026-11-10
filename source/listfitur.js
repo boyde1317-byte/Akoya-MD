@@ -200,7 +200,6 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}delowner
 │ ├─ ${prefix}listowner
 │ ├─ ${prefix}owner
-│ ├─ ${prefix}addseller
 │ ├─ ${prefix}delseller
 │ ├─ ${prefix}listseller
 │ ├─ ${prefix}babu
@@ -247,7 +246,6 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}claudeai2
 │ ├─ ${prefix}metaai
 │ ├─ ${prefix}deepimg
-│ ├─ ${prefix}bingimg-2d
 │ └────────
 
 □ ./Download.js
@@ -261,8 +259,6 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}fb
 │ ├─ ${prefix}yt
 │ ├─ ${prefix}play
-│ ├─ ${prefix}play2
-│ ├─ ${prefix}play3
 │ ├─ ${prefix}playsf
 │ ├─ ${prefix}ytsearch
 │ ├─ ${prefix}playclound
@@ -295,7 +291,6 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}upscale
 │ ├─ ${prefix}upscale2
 │ ├─ ${prefix}upscale3
-│ ├─ ${prefix}hdvid
 │ ├─ ${prefix}delwatermark
 │ ├─ ${prefix}removebg
 │ ├─ ${prefix}tohitam
@@ -337,16 +332,11 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}fakedana
 │ ├─ ${prefix}fakeovo
 │ ├─ ${prefix}fakegopay
-│ ├─ ${prefix}fakecard
-│ ├─ ${prefix}fakebook
-│ ├─ ${prefix}fakeboard
 │ ├─ ${prefix}fakeprofil
 │ ├─ ${prefix}pakeko
-│ ├─ ${prefix}fakedj
 │ ├─ ${prefix}idcard
 │ ├─ ${prefix}meigen
 │ ├─ ${prefix}quotesmaker
-│ ├─ ${prefix}swgc2
 │ └────────
 
 □ ./Tools.js
@@ -402,14 +392,8 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}jpm
 │ ├─ ${prefix}jpm2
 │ ├─ ${prefix}jpm3
-│ ├─ ${prefix}savekontak
-│ ├─ ${prefix}savekontak2
-│ ├─ ${prefix}pushkontak
-│ ├─ ${prefix}respushkontak
-│ ├─ ${prefix}pushkontak2
 │ ├─ ${prefix}upch
 │ ├─ ${prefix}rvo
-│ ├─ ${prefix}swgrup
 │ └────────
 
 □ ./Stalk.js
@@ -475,7 +459,6 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}cecan
 │ ├─ ${prefix}cogan
 │ ├─ ${prefix}animefind
-│ ├─ ${prefix}bedtime story
 │ ├─ ${prefix}jarak
 │ └────────
 
@@ -487,23 +470,13 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}mbim
 │ ├─ ${prefix}tebakbom
 │ ├─ ${prefix}tebakangka
-│ ├─ ${prefix}togel
 │ ├─ ${prefix}ttt
-│ ├─ ${prefix}stickman
-│ ├─ ${prefix}mortal
 │ ├─ ${prefix}memory-match
-│ ├─ ${prefix}mahjong
 │ ├─ ${prefix}puzzle
-│ ├─ ${prefix}arrow
-│ ├─ ${prefix}racing
-│ ├─ ${prefix}angrybirds
 │ ├─ ${prefix}flappy
 │ ├─ ${prefix}snake-rimba
 │ ├─ ${prefix}snake
-│ ├─ ${prefix}geometry
 │ ├─ ${prefix}tetris
-│ ├─ ${prefix}sonic
-│ ├─ ${prefix}chess
 │ └────────
 
 □ ./Quote.js
@@ -676,7 +649,6 @@ async function ownermenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}delowner
 │ ├─ ${prefix}listowner
 │ ├─ ${prefix}developerbot
-│ ├─ ${prefix}addseller
 │ ├─ ${prefix}delseller
 │ ├─ ${prefix}listseller
 │ ├─ ${prefix}babu
@@ -1157,7 +1129,6 @@ async function aimenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}claudeai2
 │ ├─ ${prefix}metaai
 │ ├─ ${prefix}deepimg
-│ ├─ ${prefix}bingimg-2d
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
@@ -1315,8 +1286,6 @@ async function downloadmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}fb
 │ ├─ ${prefix}yt
 │ ├─ ${prefix}play
-│ ├─ ${prefix}play2
-│ ├─ ${prefix}play3
 │ ├─ ${prefix}playsf
 │ ├─ ${prefix}ytsearch
 │ ├─ ${prefix}playclound
@@ -1637,7 +1606,6 @@ async function imagemenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}upscale
 │ ├─ ${prefix}upscale2
 │ ├─ ${prefix}upscale3
-│ ├─ ${prefix}hdvid
 │ ├─ ${prefix}delwatermark
 │ ├─ ${prefix}removebg
 │ ├─ ${prefix}tohitam
@@ -1820,16 +1788,11 @@ async function makermenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}fakedana
 │ ├─ ${prefix}fakeovo
 │ ├─ ${prefix}fakegopay
-│ ├─ ${prefix}fakecard
-│ ├─ ${prefix}fakebook
-│ ├─ ${prefix}fakeboard
 │ ├─ ${prefix}fakeprofil
 │ ├─ ${prefix}pakeko
-│ ├─ ${prefix}fakedj
 │ ├─ ${prefix}idcard
 │ ├─ ${prefix}meigen
 │ ├─ ${prefix}quotesmaker
-│ ├─ ${prefix}swgc2
 │ └────────
 `;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
@@ -2313,14 +2276,8 @@ async function jpmmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}jpm
 │ ├─ ${prefix}jpm2
 │ ├─ ${prefix}jpm3
-│ ├─ ${prefix}savekontak
-│ ├─ ${prefix}savekontak2
-│ ├─ ${prefix}pushkontak
-│ ├─ ${prefix}respushkontak
-│ ├─ ${prefix}pushkontak2
 │ ├─ ${prefix}upch
 │ ├─ ${prefix}rvo
-│ ├─ ${prefix}swgrup
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
@@ -3105,7 +3062,6 @@ async function funmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}cecan
 │ ├─ ${prefix}cogan
 │ ├─ ${prefix}animefind
-│ ├─ ${prefix}bedtime story
 │ ├─ ${prefix}jarak
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
@@ -3257,23 +3213,13 @@ async function gamemenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}mbim
 │ ├─ ${prefix}tebakbom
 │ ├─ ${prefix}tebakangka
-│ ├─ ${prefix}togel
 │ ├─ ${prefix}ttt
-│ ├─ ${prefix}stickman
-│ ├─ ${prefix}mortal
 │ ├─ ${prefix}memory-match
-│ ├─ ${prefix}mahjong
 │ ├─ ${prefix}puzzle
-│ ├─ ${prefix}arrow
-│ ├─ ${prefix}racing
-│ ├─ ${prefix}angrybirds
 │ ├─ ${prefix}flappy
 │ ├─ ${prefix}snake-rimba
 │ ├─ ${prefix}snake
-│ ├─ ${prefix}geometry
 │ ├─ ${prefix}tetris
-│ ├─ ${prefix}sonic
-│ ├─ ${prefix}chess
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {

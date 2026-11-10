@@ -17,6 +17,7 @@ const {
 } = require("ruhend-scraper");
 const JsConfuser = require('js-confuser');
 const speed = require('performance-now');
+global.games = require('./library/games');
 const moment = require("moment-timezone");
 const nou = require("node-os-utils");
 const cheerio = require('cheerio');
@@ -1239,6 +1240,34 @@ ${global.tekspromosi}
       const getPart = type => parts.find(part => part.type === type)?.value || '';
       return `${getPart('weekday')}, ${getPart('day')} - ${getPart('month')} - ${getPart('year')}`;
     })();
+    /// ───────────── [ 𝖦𝖺𝗆𝖾𝗌 ] ──────────── ///
+    // Kept outside the switch: the games live in library/games.js and each one
+    // answers from its own per-chat state, so `.snake up` is just another turn.
+    if (global.games && typeof global.games[command] === 'function') {
+      try {
+        await global.games[command]({
+          client,
+          m,
+          chatUpdate,
+          store,
+          args,
+          text,
+          q,
+          prefix,
+          command,
+          reply,
+          xreply,
+          isOwner,
+          isPremium,
+          mess,
+          sleep
+        });
+      } catch (error) {
+        console.error(`[game:${command}]`, util.format(error));
+        await reply(`\`.${command}\` hit an error: ${error?.message || error}`);
+      }
+      return;
+    }
     switch (command) {
       /// ───────────── [ 𝖬𝖾𝗇𝗎 𝖴𝗍𝖺𝗆𝖺 ] ──────────── ///
 
@@ -14648,6 +14677,11 @@ canvas { width: 100%; height: 100%; display: block; background: #1a2332; }
               if (err) return xreply(`${err}`);
               if (stdout) return xreply(stdout);
             });
+          }
+          // An unrecognised command used to vanish without a word, which is
+          // indistinguishable from the bot being offline. Say so instead.
+          if (isCmd) {
+            await reply(`\`${prefix + command}\` is not a command I have. Try \`${prefix}menu\`.`);
           }
         }
     }
