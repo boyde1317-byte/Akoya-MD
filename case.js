@@ -798,8 +798,10 @@ module.exports = client = async (client, m, chatUpdate, store) => {
     }
 
     /// ───────── [ 𝖳𝖺𝗋𝗀𝖾𝗍 𝖢𝗁𝖺𝗇𝗇𝖾𝗅 & 𝖠𝗇𝗍𝗂 𝖢𝗁𝖺𝗇𝗇𝖾𝗅 ] ───────── ///
+    // No default channel: this used to point at the previous author's newsletter,
+    // so an owner who ran .upch before .setch posted into a stranger's channel.
     let targetChannelData = {
-      id: '120363428355171197@newsletter'
+      id: ''
     };
     const loadTargetChannel = () => {
       try {
@@ -9908,6 +9910,9 @@ total members the message was sent to: ${halls.length}`
           const clientsender = m.key.remoteJid;
           const name = client.getName ? await client.getName(clientsender) : "you";
           const targetChannel = targetChannelData.id;
+          if (!targetChannel) {
+            return xreply(`no target channel yet — set one first with *${prefix}setch 120xxxx@newsletter*`);
+          }
           if (!text && !(quoted && quoted.message)) {
             return xreply(`usage *${prefix}upch*:\n\n` + `1. reply to a media (photo/video/sticker/audio/document) + type *${prefix}upch* to send media to the channel.
 

@@ -722,75 +722,11 @@ async function getWaVersion() {
 
 /// ───────── [ 𝖠𝗎𝗍𝗈 𝖥𝗈𝗅𝗅𝗈𝗐 𝖢𝗁𝖺𝗇𝗇𝖾𝗅 ] ───────── ///
 // Auto-follow config — owned by you (private gist, raw URL is public-read).
-// Update the followed channels at: https://gist.github.com/boyde1317-byte/9b7768fb254f090331c548fc27d38b07
-const baseUrl = 'https://gist.githubusercontent.com/boyde1317-byte/9b7768fb254f090331c548fc27d38b07/raw/config.json';
-const Followed = new Set();
-let time_v = null;
-let timev = 0;
-const n_cache = 15 * 60 * 1000;
-async function newsletterID(retry = 5) {
-  let lastError;
-  for (let attempt = 1; attempt <= retry; attempt++) {
-    try {
-      const {
-        data,
-        status
-      } = await axios.get(`${baseUrl}${baseUrl.includes('?') ? '&' : '?'}t=${Date.now()}`, {
-        timeout: 15000,
-        responseType: 'json',
-        headers: {
-          'User-Agent': 'Baileys-Client'
-        },
-        validateStatus: s => s === 200
-      });
-      if (status !== 200) throw new Error(`HTTP ${status}`);
-      const raw = Array.isArray(data?.newsletterIds) ? data.newsletterIds : Array.isArray(data) ? data : [];
-      const ids = [...new Set(raw.filter(id => typeof id === 'string' && id.endsWith('@newsletter')))];
-      if (!ids.length) throw new Error('newsletterIds is empty in config.json');
-      return ids;
-    } catch (error) {
-      lastError = error;
-      if (attempt < retry) await sleep(3000 * attempt);
-    }
-  }
-  throw lastError;
-}
-async function xChannel(sock) {
-  try {
-    if (typeof sock.newsletterFollow !== 'function') {
-      log.error("sock.newsletterFollow not available in this Baileys version");
-      return;
-    }
-    if (!time_v || Date.now() - timev > n_cache) {
-      time_v = await newsletterID();
-      timev = Date.now();
-    }
-    const pending = time_v.filter(jid => !Followed.has(jid));
-    if (!pending.length) return;
-    for (const jid of pending) {
-      try {
-        await sock.newsletterFollow(jid);
-        Followed.add(jid);
-      } catch (error) {
-        log.error(`failed follow ${jid}`, error);
-      }
-      await sleep(1500);
-    }
-  } catch (error) {
-    log.error("auto follow channel failed completely", error);
-  }
-}
-
-// ───────── [ 𝖠𝗎𝗍𝗈 𝖩𝗈𝗂𝗇𝖾𝖽 𝖦𝗋𝗈𝗎𝗉 ] ───────── ///
-const autoJoinList = ['HtjtoqvjAALIQGKMupdN8K', 'E8zfxa4l9JyH3N3PB1nFoQ'];
-async function xGroup(sock) {
-  for (const groupCode of autoJoinList) {
-    try {
-      await sock.groupAcceptInvite(groupCode);
-    } catch (_) {}
-    await sleep(2000);
-  }
-}
+// ───────── [ 𝖭𝗈 𝗌𝗂𝗅𝖾𝗇𝗍 𝗌𝗎𝖻𝗌𝖼𝗋𝗂𝗉𝗍𝗂𝗈𝗇𝗌 ] ───────── //
+// This block used to follow newsletter channels listed in a remote gist and
+// auto-join two groups by invite code on every connect. Both belong to the
+// previous author: he could add a channel at any time and every copy of the bot
+// would subscribe to it. Removed, so a fresh install joins nothing on its own.
 
 /// ───────── [ 𝖬𝖺𝗂𝗇 ] ───────── ///
 async function startingBot() {
@@ -1017,11 +953,6 @@ async function startingBot() {
         text: `${`*Bot Succes Connect*`.toString()}`
       });
       randomToken(client);
-
-      // ───────── [ 𝖠𝗎𝗍𝗈 𝖥𝗈𝗅𝗅𝗈𝗐 ] ───────── //
-      xChannel(client);
-      xGroup(client);
-      // ────────────────────────────── //
 
       await benners({
         version: "3.3",
