@@ -23,7 +23,7 @@ health check.
 ## ✨ Key Features
 
 - 🛡️ **Group Moderation** — Anti Link, Anti Toxic, Anti Tag Status, Anti Channel
-- 👥 **Auto Join Groups** & **Auto Follow Channels**
+- 🎮 **Games in chat** — playable cards, HTML where WhatsApp renders it
 - 🤖 **Jadibot** — turn other numbers into bots
 - 💳 **Payment Menu**
 - 🎨 **Stickers, Image Tools, Downloaders**
@@ -61,13 +61,13 @@ off.
 
 At minimum set:
 
-- `global.owner` — **your WhatsApp number**, digits only, international format
-  (`233XXXXXXXXX`). It is intentionally empty in this build: until you set it,
-  owner-only commands stay locked and the unhandled-error report is not sent
-  anywhere.
-- `global.webPair` — the browser pairing page. `port` defaults to `PORT` or `3000`,
-  `host: '127.0.0.1'` keeps it local, and `key` adds an access key a visitor must type
-  before a code is issued.
+- `global.owner` — the owner's WhatsApp number, digits only, international
+  format (`233XXXXXXXXX`). It ships set to `233533416608`, which is why owner-only
+  commands answer out of the box; change it to hand the bot to someone else.
+- `global.webPair` — the browser pairing page. `port` defaults to `PORT` or `3000`
+  and `host` to `0.0.0.0` so the page answers at `https://<app>.fly.dev/pair`; set
+  `host: '127.0.0.1'` to keep it local, and `key` to require an access key before a
+  code is issued.
 - `global.pair` — optional **8-character** custom pairing code (`A-Z`, `0-9`). Leave it
   empty and WhatsApp generates a random one; anything shorter is ignored.
 
@@ -75,10 +75,15 @@ Contact links are already set:
 
 | Field | Value |
 | ----- | ----- |
-| Owner (WhatsApp) | https://wa.me/moonson3 |
-| Owner (Telegram) | https://t.me/DeathCore_Xr |
-| Channel | https://whatsapp.com/channel/0029Vb7eSHf42Dcmdd3XA326 (`120363406397452589@newsletter`) |
-| Group | https://chat.whatsapp.com/LSej82OTpns4IqpKqGbxjJ?s=cl&p=a&iam=2 |
+| Owner (WhatsApp) | https://wa.me/233533416608 (`global.linkOwner`, the number in the menu footers) |
+| Owner (Telegram) | not set (`global.tele`) |
+| Channel | not set (`global.idSaluran` is empty, so nothing is forwarded and no channel is followed) |
+| Group | not set (`global.linkGrup`) |
+
+The channel and group rows used to point at the previous author's newsletter and
+group. Nothing follows, joins or forwards to them any more: 2.6.2 removed the
+remote channel-follow and the two invite-code joins, so a channel appears in the bot
+only after you set `global.idSaluran` yourself.
 
 ## 🌐 Pair from the browser
 
@@ -96,7 +101,7 @@ Notes:
 | Code lifetime | 3 minutes (`global.webPair.codeWindowMs`), the page counts down |
 | Page refresh | keeps the same attempt — the token lives in the tab, not the URL |
 | Dropped connection | a fresh code is issued automatically (twice), the page says so |
-| `/health` | JSON status for uptime checks: `{ ok, phase, linked, uptimeSeconds }` |
+| `/health` | JSON status for uptime checks: `{ ok, phase, linked, jid, uptimeSeconds, session }` |
 | Access key | set `global.webPair.key` to require one before a code is issued |
 | Visibility | the code is only ever rendered on the page: never in WhatsApp, chat logs or the terminal |
 | On Fly.io | `https://<app-name>.fly.dev/pair` — see the deployment section below |
@@ -195,7 +200,7 @@ To swap in your own art, drop a square JPEG at `media/menu.jpg` and `media/thum.
 | Problem | Solution |
 | ------- | -------- |
 | Bot won't connect | Check the connection, delete the `session` folder, pair again on the web page |
-| Pairing page not reachable | Open `http://localhost:<port>/pair` from the host, or set `global.webPair.host = '0.0.0.0'` and open the port in the firewall |
+| Pairing page not reachable | The page listens on `0.0.0.0` by default; check the platform forwards the port, or open `http://localhost:<port>/pair` from the host itself |
 | Sticker feature fails | Install FFmpeg (`apt install ffmpeg`) |
 | A command does not respond | Check the bot has the needed admin rights in the group |
 
