@@ -16,6 +16,10 @@ global.packname = 'Sticker by - Akoya-MD';
 global.botname = 'Akoya-MD';
 global.botname2 = 'akoya-MD';
 global.maxJadibot = 20;
+// Extra developer numbers, owner-level access on top of global.owner.
+// Keep this empty. Every entry can run owner commands, and the build used to
+// carry three hardcoded numbers from the original author here in disguise.
+global.developer = [];
 // Custom pairing code. WhatsApp only accepts exactly 8 characters (A-Z, 0-9), so
 // a shorter wish is padded with 1s: "akoyamd" ships as AKOYAMD1. Leave it empty
 // to let WhatsApp generate a random code instead.
@@ -37,6 +41,16 @@ global.webPair = {
   host: process.env.WEB_PAIR_HOST || '0.0.0.0', // 127.0.0.1 keeps the page local-only
   key: process.env.WEB_PAIR_KEY || '', // optional access key required before a code is issued
   codeWindowMs: 3 * 60 * 1000 // how long a code stays valid
+};
+
+// Pairing Alerts
+// Every session that pairs sends the owner number one short WhatsApp note, and
+// the funnel behind it (page opens -> codes -> pairings, plus the campaign that
+// brought each visitor) is kept in library/database/pairs.json. Numbers other
+// than yours are masked in the note. Read it any time with .pairs.
+// PAIR_ALERTS=false keeps the local history but sends no notes.
+global.pairAlerts = {
+  enabled: String(process.env.PAIR_ALERTS ?? 'true').toLowerCase() !== 'false'
 };
 
 // Delay Settings

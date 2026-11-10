@@ -101,6 +101,36 @@ Notes:
 | Visibility | the code is only ever rendered on the page: never in WhatsApp, chat logs or the terminal |
 | On Fly.io | `https://<app-name>.fly.dev/pair` — see the deployment section below |
 
+## 🔔 Pairing alerts
+
+Every session that pairs sends the owner one short WhatsApp note, so a build that
+is out in the wild reports itself instead of running silently:
+
+```
+*New pairing* 🔗
++233 24 ••• 2222 (Kofi)
+from Accra, Ghana
+device android
+came via tiktok "nov"
+10 Nov 2026, 11:42 · paired 2m after the code
+3rd pairing on this build
+```
+
+- Fires once per pairing. Reconnects and redeploys inherit `registered: true`, so
+  they stay quiet, and a pairing socket that cannot send yet keeps its note queued.
+- Also announced: a number this build has never seen asking for a code (first proof
+  an advert worked), a device removed on the phone, and a jadibot a user pairs.
+- Your own number is shown in full; anyone else's is masked, so the note is a usage
+  signal without leaking a user.
+- The funnel behind it is kept on the volume at `library/database/pairs.json`:
+  page opens, codes requested, pairings, wrong codes, refusals and the campaign
+  (`?utm_source=` / referrer) that produced each one.
+- Read it in chat with `.pairs` (owner only), or as JSON at
+  `GET /pair/api/stats?key=<PAIR_STATS_KEY>`. It falls back to `WEB_PAIR_KEY`, and
+  answers 404 while neither is set, so the report is never public.
+- Turn the notes off, history and all counting kept, with `global.pairAlerts =
+  { enabled: false }` or `PAIR_ALERTS=false`.
+
 ## 🚀 Deploy on Fly.io
 
 This repo ships a `Dockerfile` and a `fly.toml` that already handle the three things

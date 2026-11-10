@@ -18,6 +18,7 @@ const {
 const {
   buildStore
 } = require("../library/store");
+const pairTrack = require("./pairtrack");
 
 /// ───────── [ 𝖢𝗈𝗇𝗌𝗍𝖺𝗇𝗍𝗌 ] ─────────── \\\
 const SESSION_ROOT = path.join(process.cwd(), "session", "jadibot");
@@ -332,7 +333,21 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
         entry.status = "online";
         entry.opened = true;
         entry.reconnectAttempt = 0;
+        const freshPairing = !!entry.pendingPairing;
+        entry.pendingPairing = false;
         entry.pairingSent = false;
+        if (freshPairing) {
+          // A user just linked their own number to the owner's bot.
+          try {
+            pairTrack.jadibotLinked({
+              number: entry.number,
+              name: (cloneSock.user && cloneSock.user.name) || (entry.creds && entry.creds.me && entry.creds.me.name) || null,
+              parent: entry.jid || null
+            });
+          } catch (_) {
+            /* telemetry never blocks a bot */
+          }
+        }
         for (const child of this.entries.values()) {
           if (child.parentJid === entry.jid && !child.stopping) {
             child.mainSock = cloneSock;
@@ -432,6 +447,9 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
       const rawCode = await entry.client.requestPairingCode(entry.number);
       if (!rawCode || entry.stopping) return;
       entry.pairingSent = true;
+      // Marks a genuine first pairing: a restored session never sets this, so a
+      // restart does not re-announce jadibots that were already linked.
+      entry.pendingPairing = true;
       const displayCode = String(rawCode).replace(/-/g, "").match(/.{1,4}/g)?.join("-") || rawCode;
       const pairingJid = entry.pairingJid || entry.jid;
       const mainSock = entry.mainSock || this.mainSock;

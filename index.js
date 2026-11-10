@@ -3,6 +3,7 @@ require('./settings');
 /// ───────── [ 𝖬𝗈𝖽𝗎𝗅𝖾𝗌 ] ───────── ///
 const fs = require('fs');
 const webPair = require('./source/webpair');
+const pairTrack = require('./source/pairtrack');
 const os = require('os');
 const pino = require('pino');
 const path = require('path');
@@ -388,6 +389,9 @@ async function snapshotCreds() {
 async function markSessionLinked(client) {
   try {
     const creds = client.authState && client.authState.creds;
+    // `registered` flipping false -> true is the only honest definition of a new
+    // pairing: reconnects and redeploys inherit it as true, so they stay quiet.
+    const freshPairing = !!(creds && creds.registered !== true);
     if (creds && creds.registered !== true) {
       creds.registered = true;
       await writeCreds(creds); // the flag has to be on disk, not just in memory
@@ -398,6 +402,14 @@ async function markSessionLinked(client) {
       linkedAt: new Date().toISOString()
     }, null, 2));
     log.info('Session saved: later restarts and redeploys will not ask for a code');
+    if (freshPairing) {
+      // Tell the owner, and record the funnel for the advert read.
+      pairTrack.linked({
+        jid: (client.user && client.user.id) || (creds && creds.me && creds.me.id) || null,
+        name: (client.user && client.user.name) || (creds && creds.me && creds.me.name) || null,
+        platform: (creds && creds.platform) || null
+      }).catch(error => log.warn(`Pairing note skipped: ${error && error.message}`));
+    }
   } catch (error) {
     log.error('Could not persist the linked session', error);
   }
@@ -463,6 +475,26 @@ webPair.setCodeRequester(async phone => {
   const creds = sock.authState && sock.authState.creds;
   if (creds && creds.registered) throw new Error('This bot is already linked to WhatsApp.');
   return requestPairCode(sock, phone);
+});
+
+/// ───────── [ 𝖯𝖺𝗂𝗋𝗂𝗇𝗀 𝖠𝗅𝖾𝗋𝗍𝗌 ] ───────── ///
+// Every session that pairs sends the owner one short note, and the funnel
+// (page opens -> codes -> pairings) is kept in library/database/pairs.json.
+// `global.pairAlerts = false` in settings.js turns the notes off.
+pairTrack.configure({
+  enabled: !(global.pairAlerts === false || (global.pairAlerts && global.pairAlerts.enabled === false)),
+  timezone: global.timezone || 'Africa/Accra'
+});
+pairTrack.setNotifier(async text => {
+  const sock = currentSock;
+  if (!sock) return false;
+  const creds = sock.authState && sock.authState.creds;
+  // An unregistered socket cannot send, so the note waits for the session.
+  if (!creds || creds.registered !== true) return false;
+  const owner = String(global.owner || '').replace(/[^0-9]/g, '');
+  if (!owner) return false;
+  await sock.sendMessage(`${owner}@s.whatsapp.net`, { text });
+  return true;
 });
 
 /// ───────── [ 𝖢𝗈𝗇𝗌𝗈𝗅𝖾 𝖳𝗁𝖾𝗆𝖾 ] ───────── ///
@@ -887,6 +919,14 @@ async function startingBot() {
       if (statusCode === DisconnectReason.loggedOut) {
         reconnectAttempt = 0;
         reconnecting = false;
+        if (wasPaired) {
+          // The device was removed on the phone: worth knowing, because the bot
+          // now sits unlinked until somebody pairs it again.
+          pairTrack.unpaired({
+            jid: (client.user && client.user.id) || null,
+            name: (client.user && client.user.name) || null
+          });
+        }
         jadibotManager.setRuntime(null, commandHandler);
         if (!wasPaired) {
           // WhatsApp refused the pairing attempt itself: wrong code, or the code
@@ -969,6 +1009,8 @@ async function startingBot() {
         name: client.user?.name || null
       });
       await markSessionLinked(client);
+      // Notes raised while the socket was unregistered go out now.
+      pairTrack.flush().catch(() => {});
       jadibotManager.setRuntime(client, commandHandler);
       jadibotManager.restore(client, commandHandler).catch(error => log.error('Jadibot restore failed', error));
       client.sendMessage(client.user.id.split(":")[0] + "@s.whatsapp.net", {

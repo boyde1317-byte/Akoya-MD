@@ -39,6 +39,7 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const crypto = require('crypto');
+const pairTrack = require('./pairtrack');
 
 const PAIRING_WINDOW_MS = 3 * 60 * 1000; // code entry window
 const TOKEN_TTL_MS = 15 * 60 * 1000; // polling token life
@@ -50,7 +51,8 @@ const DEFAULTS = {
   host: '0.0.0.0',
   key: '',
   codeWindowMs: PAIRING_WINDOW_MS,
-  maxRotations: 2
+  maxRotations: 2,
+  statsKey: ''
 };
 
 let cfg = { ...DEFAULTS };
@@ -92,6 +94,9 @@ function configure(patch = {}) {
   next.customCode = next.customCode ? String(next.customCode).toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
   next.maxRotations = Number.isFinite(next.maxRotations) ? next.maxRotations : DEFAULTS.maxRotations;
   cfg = next;
+  // The pairing report is owner-only: unlocked by a key in the URL, never public.
+  // Falls back to the page key, so a gated page is never a half-open door.
+  cfg.statsKey = String(cfg.statsKey || process.env.PAIR_STATS_KEY || cfg.key || '');
   return cfg;
 }
 
@@ -153,6 +158,7 @@ function markDisconnected(statusCode, opts = {}) {
     if (!paired) {
       // Not a dead session: WhatsApp refused the code typed on the phone (a wrong
       // digit, or it had expired). Keep the number so a fresh code can be issued.
+      pairTrack.wrongCode({ phone: state.phone });
       state.phase = 'failed';
       state.linked = null;
       state.error = 'WhatsApp did not accept that code — it was typed wrong, or it had expired. Get a new code and type it exactly as shown.';
@@ -262,9 +268,50 @@ function rateLimit(ip, bucket, max, windowMs) {
   return true;
 }
 
+/**
+ * The visitor's address, not the proxy's. Behind Fly (or any reverse proxy) the
+ * socket belongs to the proxy, so rate limits and geo lookups would all collapse
+ * onto one address. `fly-client-ip` is set by Fly itself and cannot be spoofed by
+ * the client; the forwarded headers are the fallback elsewhere.
+ */
 function clientIp(req) {
-  const raw = req.socket && req.socket.remoteAddress ? req.socket.remoteAddress : '';
-  return raw.replace(/^::ffff:/, '') || 'unknown';
+  const headers = req.headers || {};
+  const first = (value) => String(value || '').split(',')[0].replace(/\s+/g, '');
+  const candidates = [
+    headers['fly-client-ip'],
+    first(headers['x-forwarded-for']),
+    headers['x-real-ip'],
+    req.socket && req.socket.remoteAddress
+  ];
+  for (const candidate of candidates) {
+    const ip = String(candidate || '').replace(/^::ffff:/, '').trim();
+    if (ip) return ip;
+  }
+  return 'unknown';
+}
+
+/** Where the visitor clicked from: an ad campaign first, then the referrer host. */
+function requestSource(req, query, body) {
+  const fromBody = body && typeof body.source === 'object' ? body.source : {};
+  const pick = (key) => fromBody[key] || (query && query.get ? query.get(key) : '') || '';
+  let referrer = String(fromBody.referrer || '');
+  if (!referrer) {
+    const raw = String((req.headers && req.headers.referer) || '');
+    try {
+      const host = raw ? new URL(raw).hostname.replace(/^www\./, '') : '';
+      const mine = String(req.headers.host || '').split(':')[0];
+      referrer = host && host !== mine ? host : '';
+    } catch (_) {
+      referrer = '';
+    }
+  }
+  const source = {
+    utm_source: pick('utm_source') || pick('src'),
+    utm_medium: pick('utm_medium') || pick('medium'),
+    utm_campaign: pick('utm_campaign') || pick('campaign'),
+    referrer
+  };
+  return Object.values(source).some(Boolean) ? source : null;
 }
 
 function escapeHtml(value) {
@@ -428,12 +475,18 @@ async function handleStart(req, res) {
     state.code = null;
     state.expiresAt = null;
     state.error = (error && error.message) || 'WhatsApp did not return a pairing code. Try again.';
+    pairTrack.refused({ phone, ip: clientIp(req), error: state.error });
     return sendJson(res, 409, { error: state.error });
   }
 
   const token = crypto.randomUUID();
-  tokens.set(token, { phone, ts: Date.now() });
-  console.log(`[web-pair] code issued for ${maskPhone(phone)} from ${clientIp(req)}`);
+  tokens.set(token, { phone, ts: Date.now(), ip: clientIp(req) });
+  const ip = clientIp(req);
+  console.log(`[web-pair] code issued for ${maskPhone(phone)} from ${ip}`);
+  // Fire and forget: telemetry must never delay or fail a pairing.
+  Promise.resolve()
+    .then(() => pairTrack.attempt({ phone, ip, source: requestSource(req, null, body) }))
+    .catch(() => {});
 
   return sendJson(res, 200, {
     token,
@@ -513,6 +566,13 @@ async function route(req, res) {
     if (!cfg.enabled) {
       return sendHtml(res, 503, renderDisabled());
     }
+    // Counted before the page is served: a visitor who never submits a number is
+    // still part of the advert funnel.
+    try {
+      pairTrack.visit({ ip: clientIp(req), source: requestSource(req, url.searchParams) });
+    } catch (_) {
+      /* telemetry never blocks a page load */
+    }
     return sendHtml(res, 200, renderPage());
   }
 
@@ -531,6 +591,20 @@ async function route(req, res) {
       jid: (snap && snap.jid) || null,
       session
     });
+  }
+
+  if (req.method === 'GET' && pathname === '/pair/api/stats') {
+    // 404 rather than 401 when no key is configured: an unset key must never turn
+    // the owner's usage numbers into a public endpoint.
+    if (!cfg.statsKey) return sendJson(res, 404, { error: 'Not found' });
+    if (!rateLimit(clientIp(req), 'stats', 30, 10 * 60 * 1000)) {
+      return sendJson(res, 429, { error: 'Too many requests.' });
+    }
+    const given = Buffer.from(String(url.searchParams.get('key') || ''));
+    const expected = Buffer.from(cfg.statsKey);
+    const same = given.length === expected.length && crypto.timingSafeEqual(given, expected);
+    if (!same) return sendJson(res, 401, { error: 'Wrong key.' });
+    return sendJson(res, 200, pairTrack.getStats());
   }
 
   if (req.method === 'GET' && pathname === '/pair/api/info') {
@@ -905,6 +979,25 @@ footer a:hover{color:var(--ink)}
     setPhaseLabel('waiting', '');
   });
 
+  // Where this visitor came from. Read on the page so /pair?utm_source=tiktok
+  // survives a reload, and posted with the number so the report can say which
+  // advert actually produced a pairing.
+  function campaign() {
+    var out = {};
+    try {
+      var params = new URLSearchParams(location.search);
+      ['utm_source', 'src', 'utm_medium', 'utm_campaign', 'ref'].forEach(function (k) {
+        var v = params.get(k);
+        if (v) out[k] = String(v).slice(0, 40);
+      });
+      var ref = document.referrer || '';
+      if (ref && ref.indexOf(location.host) === -1) out.referrer = String(ref).slice(0, 120);
+    } catch (e) {
+      /* very old browser: no campaign, pairing still works */
+    }
+    return out;
+  }
+
   function start() {
     var raw = $('phone').value;
     var num = raw.replace(/[^0-9]/g, '');
@@ -922,7 +1015,7 @@ footer a:hover{color:var(--ink)}
     fetch('/pair/api/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: phone, key: key })
+      body: JSON.stringify({ phone: phone, key: key, source: campaign() })
     }).then(function (r) {
       return r.json().then(function (d) { return { ok: r.ok, body: d }; });
     }).then(function (res) {
