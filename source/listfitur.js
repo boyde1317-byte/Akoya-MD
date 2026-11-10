@@ -126,7 +126,7 @@ async function menu(client, m, smsg, store, args) {
   let anu = `𝖨'𝗆 \`${global.botname}\`, 𝖺 𝖶𝗁𝖺𝗍𝗌𝖠𝗉𝗉 𝖺𝗌𝗌𝗂𝗌𝗍𝖺𝗇𝗍 𝗍𝗁𝖺𝗍 𝗂𝗌 𝗋𝖾𝖺𝖽𝗒 𝗐𝗁𝖾𝗇𝖾𝗏𝖾𝗋 𝗒𝗈𝗎 𝗇𝖾𝖾𝖽 𝗂𝗍. 
 
 ◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖲𝗍𝖺𝗍𝗎𝗌:* ${statusUser}
@@ -189,7 +189,7 @@ async function allmenu(client, m, smsg, store, args) {
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `
 ◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -665,7 +665,7 @@ async function ownermenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -831,7 +831,7 @@ async function jadibotmenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -983,7 +983,7 @@ async function paymentmenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -1136,7 +1136,7 @@ async function aimenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -1299,7 +1299,7 @@ async function downloadmenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -1468,7 +1468,7 @@ async function stickermenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -1625,7 +1625,7 @@ async function imagemenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -1788,7 +1788,7 @@ async function makermenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -1972,7 +1972,7 @@ async function toolsmenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -2133,7 +2133,7 @@ async function groupmenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -2298,7 +2298,7 @@ async function jpmmenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -2462,7 +2462,7 @@ async function stalkmenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -2619,7 +2619,7 @@ async function searchmenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -2779,7 +2779,7 @@ async function randommenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -2934,7 +2934,7 @@ async function storemenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -3088,7 +3088,7 @@ async function funmenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -3244,7 +3244,7 @@ async function gamemenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -3411,7 +3411,7 @@ async function quotemenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}
@@ -3558,7 +3558,7 @@ async function utilitymenu(client, m, smsg, store, args) {
   } = await getMenuContext(client, m);
   let anu = `🔖 𝖶𝖾𝗅𝖼𝗈𝗆𝖾 𝗍𝗈 𝖠𝗄𝗈𝗒𝖺 𝖬𝗎𝗅𝗍𝗂-𝖣𝖾𝗏𝗂𝖼𝖾`;
   let menuText = `◜🔔◞ *./𝖨𝗇𝖿𝗈𝗋𝗆𝖺𝗍𝗂𝗈𝗇.𝗃𝗌*
-└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* t.me/DeathCore_Xr
+└╼ *𝖢𝗋𝖾𝖺𝗍𝗈𝗋:* wa.me/233533416608
 └╼ *𝖵𝖾𝗋𝗌𝗂𝗈𝗇:* ${versionLabel()}
 └╼ *𝖳𝗈𝗍𝖺𝗅 𝖥𝖾𝖺𝗍𝗎𝗋𝖾𝗌:* ${total} features
 └╼ *𝖳𝗂𝗆𝖾:* ${runtime(process.uptime())}

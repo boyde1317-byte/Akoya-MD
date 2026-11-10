@@ -616,8 +616,8 @@ function brand() {
   const g = (typeof global !== 'undefined' ? global : {});
   return {
     name: g.botname || 'Akoya-MD',
-    telegram: g.tele || 't.me/DeathCore_Xr',
-    whatsapp: g.linkOwner || 'https://wa.me/moonson3',
+    telegram: g.tele || '',
+    whatsapp: g.linkOwner || '',
     channel: g.linkSaluran || '',
     group: g.linkGrup || '',
     keyRequired: !!cfg.key

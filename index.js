@@ -1055,10 +1055,9 @@ async function startingBot() {
             profile = 'https://telegra.ph/file/95670d63378f7f4210f03.png';
           }
           if (action == 'add') {
-            teks = author.split("").length < 1 ? `@${n.split('@')[0]} join via *welcome to the group 🐦‍🔥*
+            teks = author.split("").length < 1 ? `@${n.split('@')[0]} joined via *Akoya-MD*
 
-🏷️ *_INFO & UPDATE client-MD_*
-${global.linkSaluran}` : author !== n ? `@${author.split("@")[0]} has *added* @${n.split('@')[0]} to the group` : ``;
+🏷️ *Welcome to the group*` : author !== n ? `@${author.split("@")[0]} has *added* @${n.split('@')[0]} to the group` : ``;
             let img = await welcomeBanner(profile, n.split("@")[0], metadata.subject, "welcome");
             await client.sendMessage(id, {
               text: teks,

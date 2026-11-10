@@ -10,8 +10,8 @@ global.owner = '233533416608';
 global.versi = version;
 // Everything date/time related uses this zone (menu header, greetings, logs).
 global.timezone = 'Africa/Accra';
-global.namaOwner = "moonson";
-global.tele = "t.me/DeathCore_Xr";
+global.namaOwner = "Jocelin";
+global.tele = ""; // optional Telegram contact; leave blank if you do not use one
 global.packname = 'Sticker by - Akoya-MD';
 global.botname = 'Akoya-MD';
 global.botname2 = 'akoya-MD';
@@ -22,9 +22,9 @@ global.maxJadibot = 20;
 global.pair = "akoyamd";
 
 // Settings Link
-global.linkOwner = "https://wa.me/moonson3";
-global.linkGrup = "https://chat.whatsapp.com/LSej82OTpns4IqpKqGbxjJ?s=cl&p=a&iam=2";
-global.source = "https://whatsapp.com/channel/0029Vb7eSHf42Dcmdd3XA326";
+global.linkOwner = "https://wa.me/233533416608";
+global.linkGrup = ""; // set this to your own group link when you have one
+global.source = "https://akoya-md.fly.dev";
 
 // Settings Web Pairing
 // Browse to http://<host>:<port>/pair to get a code — no terminal, no QR.
@@ -44,9 +44,15 @@ global.delayJpm = 3500;
 global.delayPushkontak = 6000;
 
 // Channel Settings
-global.linkSaluran = "https://whatsapp.com/channel/0029Vb7eSHf42Dcmdd3XA326";
-global.idSaluran = "120363406397452589@newsletter";
+global.linkSaluran = "https://akoya-md.fly.dev";
+// Replies used to be forwarded from a newsletter this bot does not own, so a
+// foreign channel banner rode on every labelled reply. Leave the JID empty until
+// you point it at a channel of your own; nothing is claimed while it is blank.
+global.idSaluran = "";
 global.namaSaluran = "Akoya-MD";
+global.newsletterInfo = global.idSaluran
+  ? { newsletterJid: global.idSaluran, newsletterName: global.namaSaluran }
+  : null;
 
 // OrderKuota Settings
 global.merchantIdOrderKuota = "-";

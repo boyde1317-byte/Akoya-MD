@@ -587,8 +587,7 @@ module.exports = client = async (client, m, chatUpdate, store) => {
     };
     const xreply = async teks => {
       try {
-        const thumUrl = "https://files.catbox.moe/x8nxvv.jpg";
-        const thum = await getBuffer(thumUrl);
+        const thum = await fs.promises.readFile('./media/thum.jpg');
         const thums = await prepareWAMessageMedia({
           image: thum
         }, {
@@ -600,11 +599,7 @@ module.exports = client = async (client, m, chatUpdate, store) => {
             mentionedJid: [m.sender],
             forwardingScore: 9,
             isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-              newsletterJid: global.idSaluran,
-              newsletterName: global.namaSaluran,
-              serverMessageId: 127
-            },
+            ...(global.newsletterInfo ? { forwardedNewsletterMessageInfo: { ...global.newsletterInfo, serverMessageId: 127 } } : {}),
             externalAdReply: {
               showAdAttribution: true,
               title: `𝖠𝗄𝗈𝗒𝖺-𝖬𝖣`,
@@ -3066,15 +3061,14 @@ ${errorMessage}`);
           const foto = fs.readFileSync("./media/thum.jpg");
           const sc = "";
           const anu = `
-halo *${m.pushName}*, if you want this script Akoya-MD please read the rules below.
+hi *${m.pushName}*, here is what you should know about Akoya-MD.
 
-\`strict warning\`
-- removing the credits is strictly forbidden
-- reselling this script is forbidden because it is 100% free and open source
-- not allowed claiming/has script 100%
-- not allowed removing, changing, hiding, or claiming the credits
-- if you recode, modify, or redistribute the source, *the original credits must remain included*.
-- open source does not mean the credits can be removed. Hormati maker and contributor developed source `.trim();
+\`house rules\`
+- keep the credits if you share this build
+- it is free and open source, so reselling it is not allowed
+- do not claim this build as your own work
+- do not strip, change or hide the credits
+- if you recode or redistribute it, *the original credits stay in place*`.trim();
           try {
             const media = await prepareWAMessageMedia({
               image: foto
@@ -3096,8 +3090,8 @@ halo *${m.pushName}*, if you want this script Akoya-MD please read the rules bel
                 buttons: [{
                   name: "cta_url",
                   buttonParamsJson: JSON.stringify({
-                    display_text: "𝖦𝖾𝗍 𝖲𝖼𝗋𝗂𝗉𝗍",
-                    url: "https://wa.me/moonson3",
+                    display_text: "𝖢𝗈𝗇𝗍𝖺𝖼𝗍 𝖮𝗐𝗇𝖾𝗋",
+                    url: "https://wa.me/233533416608",
                     merchant_url: "https://www.google.com"
                   })
                 }],
@@ -6019,7 +6013,7 @@ name: ${nama}\nTemplate: ${template}`
       case "idcard":
         {
           if (!text) {
-            return xreply(`Example :\n${prefix + command} Akoya-MD|creator|md|https://t.me/DeathCore_Xr-MD`);
+            return xreply(`Example :\n${prefix + command} Akoya-MD|creator|md|https://wa.me/233533416608`);
           }
           let [name, title, script, telegram] = text.split("|");
           if (!name || !title || !script || !telegram) {
@@ -6394,10 +6388,7 @@ ${res.url}
               caption: caption,
               contextInfo: {
                 isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                  newsletterJid: global.idSaluran,
-                  newsletterName: global.namaSaluran
-                }
+                ...(global.newsletterInfo ? { forwardedNewsletterMessageInfo: global.newsletterInfo } : {})
               }
             }, {
               quoted: m
@@ -6471,10 +6462,7 @@ ${err.message || err}`);
               caption: caption,
               contextInfo: {
                 isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                  newsletterJid: global.idSaluran,
-                  newsletterName: global.namaSaluran
-                }
+                ...(global.newsletterInfo ? { forwardedNewsletterMessageInfo: global.newsletterInfo } : {})
               }
             }, {
               quoted: m
@@ -8423,7 +8411,7 @@ ${prefix + command} https://www.instagram.com/reel/DaH1GCUvqVn/?igsh=xxxxx`);
         break;
       case 'readmore':
         {
-          if (!text.includes('|')) return xreply("use the symbol \"|\" to separate the text parts with the readmore effect.\nexample:.readmore aku | suka | you ❤️");
+          if (!text.includes('|')) return xreply("use the symbol \"|\" to separate the text parts with the readmore effect.\nexample:.readmore i | like | you ❤️");
           const more = String.fromCharCode(8206).repeat(4001);
           const teks = text.split('|').join(more);
           xreply(teks);
@@ -8539,10 +8527,7 @@ Total *${halls.length}* contacts`,
               caption: `\n${teks}\n`,
               contextInfo: {
                 isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                  newsletterJid: global.idSaluran,
-                  newsletterName: global.namaSaluran
-                }
+                ...(global.newsletterInfo ? { forwardedNewsletterMessageInfo: global.newsletterInfo } : {})
               }
             }));
           } catch (error) {
@@ -8675,12 +8660,12 @@ Total *${halls.length}* contacts`,
           if (!isOwner) return reply(mess.owner);
           let memberFilter = await m.metadata.participants.map(v => v.id).filter(e => e !== botNumber && e !== m.sender);
           if (memberFilter.length < 1) return xreply("group already no Member!");
-          await xreply("Kudeta group owner only");
+          await xreply("Only the group owner can take over.");
           for (let i of memberFilter) {
             await client.groupParticipantsUpdate(m.chat, [i], 'remove');
             await sleep(1000);
           }
-          await xreply("Kudeta group Telah success 🏴‍☠️");
+          await xreply("Group takeover complete 🏴‍☠️");
         }
         break;
       case "demote":
@@ -9636,13 +9621,7 @@ ${e.message}`);
           if (!isOwner) return reply(mess.owner);
           if (!q) return xreply(example("jasa install panel"));
           let teks = `📦 ${text}
-⏰ ${new Date().toLocaleString('en-GB')}
-
-*Testimoni :*
-${linkSaluran}
-
-*Marketplace :*
-${linkGrup}`;
+⏰ ${new Date().toLocaleString('en-GB')}`;
           await client.sendMessage(m.chat, {
             text: teks,
             mentions: [m.sender],
@@ -9664,13 +9643,7 @@ ${linkGrup}`;
           if (!isOwner) return reply(mess.owner);
           if (!q) return xreply(example("jasa install panel"));
           let teks = `📦 ${text}
-⏰ ${new Date().toLocaleString('en-GB')}
-
-*Testimoni :*
-${linkSaluran}
-
-*Marketplace :*
-${linkGrup}`;
+⏰ ${new Date().toLocaleString('en-GB')}`;
           await client.sendMessage(m.chat, {
             text: teks,
             mentions: [m.sender],
@@ -10122,11 +10095,7 @@ please register channel first.
             const ctx = {
               isForwarded: true,
               forwardingScore: 999,
-              forwardedNewsletterMessageInfo: {
-                newsletterJid: global.idSaluran,
-                newsletterName: global.namaSaluran,
-                serverMessageId: 127
-              }
+              ...(global.newsletterInfo ? { forwardedNewsletterMessageInfo: { ...global.newsletterInfo, serverMessageId: 127 } } : {})
             };
             const preview = teks ? teks.substring(0, 60) + (teks.length > 60 ? "..." : "") : "no";
             await xreply(`
@@ -10684,8 +10653,7 @@ example order:
 
 `;
             });
-            const thumUrl = "https://files.catbox.moe/x8nxvv.jpg";
-            const thum = await getBuffer(thumUrl);
+            const thum = await fs.promises.readFile('./media/thum.jpg');
             const thums = await prepareWAMessageMedia({
               image: thum
             }, {
@@ -10706,7 +10674,7 @@ example order:
                 messageParamsJson: JSON.stringify({
                   limited_time_offer: {
                     text: "TikTok Service",
-                    url: "https://t.me/DeathCore_Xr",
+                    url: "https://wa.me/233533416608",
                     copy_code: "TikTok",
                     expiration_time: Date.now() * 999
                   },
@@ -10719,7 +10687,7 @@ example order:
                   tap_target_configuration: {
                     title: "▸ X ◂",
                     description: "TikTok Service",
-                    canonical_url: "https://t.me/DeathCore_Xr",
+                    canonical_url: "https://wa.me/233533416608",
                     domain: "shop.example.com",
                     button_index: 0
                   }
@@ -14646,11 +14614,7 @@ canvas { width: 100%; height: 100%; display: block; background: #1a2332; }
                 contextInfo: {
                   mentionedJid: member,
                   isForwarded: true,
-                  forwardedNewsletterMessageInfo: {
-                    newsletterName: `${global.namaSaluran}`,
-                    newsletterJid: `${global.idSaluran}`,
-                    serverMessageId: 143
-                  },
+                  ...(global.newsletterInfo ? { forwardedNewsletterMessageInfo: { ...global.newsletterInfo, serverMessageId: 143 } } : {}),
                   businessMessageForwardInfo: {
                     businessOwnerJid: client.decodeJid(client.user.id)
                   },

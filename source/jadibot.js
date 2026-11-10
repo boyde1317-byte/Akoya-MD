@@ -27,7 +27,7 @@ const PAIRING_TIMEOUT = 120000;
 const SOCKET_READY_TIMEOUT = 20000;
 
 /// ───────── [ 𝖧𝖾𝗅𝗉𝖾𝗋𝗌 ] ─────────── \\\
-/** Strip `@s.whatsapp.net`, `:device`, dan semua non-digit */
+/** Strip `@s.whatsapp.net`, `:device` and every non-digit */
 function normalizeNumber(value = "") {
   return String(value).replace(/@s\.whatsapp\.net$/i, "").replace(/:\d+(?=@|$)/, "").replace(/\D/g, "");
 }
@@ -38,7 +38,7 @@ function toJid(number) {
   return clean ? `${clean}@s.whatsapp.net` : "";
 }
 
-/** Ambil status code disconnect dari berbagai bentuk error */
+/** Read the disconnect status code out of the various error shapes */
 function safeStatusCode(error) {
   return error?.output?.statusCode ?? error?.statusCode ?? error?.data?.statusCode;
 }
@@ -73,7 +73,7 @@ class JadibotManager {
   }
 
   /// ───────── [ 𝖱𝗎𝗇𝗍𝗂𝗆𝖾 𝖲𝖾𝗍𝗎𝗉 ] ─────────── \\\
-  /** Set mainSock & handler ke semua entry yang aktif */
+  /** Attach mainSock & handlers to every active entry */
   setRuntime(mainSock, commandHandler) {
     if (mainSock !== undefined) {
       this.mainSock = mainSock || null;
@@ -164,7 +164,7 @@ class JadibotManager {
       };
     }
 
-    /* Guard: sudah pernah start */
+    /* Guard: already started */
     if (this.entries.has(jid)) {
       const entry = this.entries.get(jid);
       return {
@@ -634,7 +634,7 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
    * Clear timer pada entry
    * @param {object} entry
    * @param {object} [opts]
-   * @param {boolean} [opts.keepReconnect=false] - Jangan hapus reconnectTimer
+   * @param {boolean} [opts.keepReconnect=false] - Do not clear reconnectTimer
    */
   async clearEntryTimers(entry, opts = {}) {
     if (entry.pairingTimer) {
@@ -651,7 +651,7 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
     }
   }
 
-  /** Lepas semua listener Baileys dari socket */
+  /** Detach every Baileys listener from the socket */
   async detachListeners(entry) {
     const client = entry.client;
     const listeners = entry.listeners;
@@ -678,7 +678,7 @@ a maximum of *${this.max} people* can be enabled as a jadibot.`
   }
 
   /// ───────── [ 𝖱𝖾𝗌𝗍𝗈𝗋𝖾 ] ─────────── \\\
-  /** Restore semua session jadibot yang tersimpan di disk */
+  /** Restore every saved sub-bot session from disk */
   async restore(mainSock, commandHandler) {
     this.setRuntime(mainSock, commandHandler);
     if (this.restorePromise) return this.restorePromise;
