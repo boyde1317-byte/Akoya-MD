@@ -195,6 +195,27 @@ served; payment IDs and audio stay private.
 To swap in your own art, drop a square JPEG at `media/menu.jpg` and `media/thum.jpg`
 (1024px or larger). Nothing else needs editing.
 
+## 🔤 Command names
+
+The menus advertise English command names: `.weather`, `.earthquake`, `.cat`,
+`.soulmate`, `.guessnumber`. The handlers behind them are the ones the bot always
+had, so nothing about how they behave changed.
+
+Every Indonesian trigger still answers. `.cuaca`, `.cekgempa`, `.kucing` and the rest
+are aliases, not dead words, which means pinned messages, saved chats and muscle
+memory keep working. The table lives in `source/cmdalias.js` — one line per command:
+
+```js
+weather: 'cuaca',
+```
+
+The lookup happens after the message is parsed, so a usage hint always echoes the
+word that was actually typed. `node tools/check-menu.js` fails the build if a menu
+entry resolves to nothing, if an alias points at a handler that does not exist, or
+if an English name would shadow a different handler.
+
+Add your own alias with one line there and nothing else.
+
 ## 🆘 Troubleshooting
 
 | Problem | Solution |
@@ -203,6 +224,7 @@ To swap in your own art, drop a square JPEG at `media/menu.jpg` and `media/thum.
 | Pairing page not reachable | The page listens on `0.0.0.0` by default; check the platform forwards the port, or open `http://localhost:<port>/pair` from the host itself |
 | Sticker feature fails | Install FFmpeg (`apt install ffmpeg`) |
 | A command does not respond | Check the bot has the needed admin rights in the group |
+| An Indonesian command still answers | Expected: `.cuaca` and friends are kept as aliases of their English name (`source/cmdalias.js`) |
 
 ---
 

@@ -207,17 +207,17 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}owner
 │ ├─ ${prefix}delseller
 │ ├─ ${prefix}listseller
-│ ├─ ${prefix}babu
+│ ├─ ${prefix}addseller
 │ ├─ ${prefix}save
 │ ├─ ${prefix}public
 │ ├─ ${prefix}self
 │ ├─ ${prefix}ping
 │ ├─ ${prefix}restart
 │ ├─ ${prefix}clearchat
-│ ├─ ${prefix}bersihbot
+│ ├─ ${prefix}cleanbot
 │ ├─ ${prefix}getcase
 │ ├─ ${prefix}done
-│ ├─ ${prefix}proses
+│ ├─ ${prefix}process
 │ └────────
 
 □ ./Jadibot.js
@@ -233,7 +233,7 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}ovo
 │ ├─ ${prefix}gopay
 │ ├─ ${prefix}shopepay
-│ ├─ ${prefix}ambilq
+│ ├─ ${prefix}rawjson
 │ └────────
 □ ./AI.js
 └────────
@@ -298,16 +298,16 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}upscale3
 │ ├─ ${prefix}delwatermark
 │ ├─ ${prefix}removebg
-│ ├─ ${prefix}tohitam
+│ ├─ ${prefix}toblack
 │ ├─ ${prefix}toghibli
 │ ├─ ${prefix}tochibi
 │ ├─ ${prefix}tocomic
-│ ├─ ${prefix}cine
+│ ├─ ${prefix}cinematic
 │ ├─ ${prefix}figure
 │ ├─ ${prefix}figure2
 │ ├─ ${prefix}blurface
 │ ├─ ${prefix}wink
-│ ├─ ${prefix}hitamin
+│ ├─ ${prefix}blacken
 │ └────────
 
 □ ./Maker.js
@@ -316,7 +316,7 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}fakeml2
 │ ├─ ${prefix}fakeff
 │ ├─ ${prefix}fakeffduo
-│ ├─ ${prefix}fakegrup
+│ ├─ ${prefix}fakegroup
 │ ├─ ${prefix}fakengl
 │ ├─ ${prefix}fakenasa
 │ ├─ ${prefix}fakenokia
@@ -325,20 +325,20 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}fakewindos
 │ ├─ ${prefix}fakewindos2
 │ ├─ ${prefix}fakeustadz
-│ ├─ ${prefix}fakepilih
+│ ├─ ${prefix}fakechoose
 │ ├─ ${prefix}fakedev
-│ ├─ ${prefix}fakemovi
-│ ├─ ${prefix}fakemovi2
-│ ├─ ${prefix}fakemovi3
-│ ├─ ${prefix}fakemovi4
-│ ├─ ${prefix}fakektp
+│ ├─ ${prefix}fakemovie
+│ ├─ ${prefix}fakemovie2
+│ ├─ ${prefix}fakemovie3
+│ ├─ ${prefix}fakemovie4
+│ ├─ ${prefix}fakeid
 │ ├─ ${prefix}fakestory
 │ ├─ ${prefix}igv2
 │ ├─ ${prefix}fakedana
 │ ├─ ${prefix}fakeovo
 │ ├─ ${prefix}fakegopay
 │ ├─ ${prefix}fakeprofil
-│ ├─ ${prefix}pakeko
+│ ├─ ${prefix}fakechat
 │ ├─ ${prefix}idcard
 │ ├─ ${prefix}meigen
 │ ├─ ${prefix}quotesmaker
@@ -361,7 +361,7 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}skiplink
 │ ├─ ${prefix}subs4unlock
 │ ├─ ${prefix}sf
-│ ├─ ${prefix}cekwa
+│ ├─ ${prefix}checkwa
 │ ├─ ${prefix}enc
 │ └────────
 
@@ -375,7 +375,7 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}antilinkch
 │ ├─ ${prefix}antitagsw
 │ ├─ ${prefix}welcome
-│ ├─ ${prefix}kudeta
+│ ├─ ${prefix}coup
 │ ├─ ${prefix}mute
 │ ├─ ${prefix}demote
 │ ├─ ${prefix}tagall
@@ -384,7 +384,7 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}kick
 │ ├─ ${prefix}leave
 │ ├─ ${prefix}delete
-│ ├─ ${prefix}idgc
+│ ├─ ${prefix}groupid
 │ └────────
 
 □ ./Jpm.js
@@ -393,10 +393,10 @@ async function allmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}delidch
 │ ├─ ${prefix}jpmch
 │ ├─ ${prefix}jpmch2
-│ ├─ ${prefix}cekidch
-│ ├─ ${prefix}jpm
-│ ├─ ${prefix}jpm2
-│ ├─ ${prefix}jpm3
+│ ├─ ${prefix}checkchannel
+│ ├─ ${prefix}broadcast
+│ ├─ ${prefix}broadcast2
+│ ├─ ${prefix}broadcast3
 │ ├─ ${prefix}upch
 │ ├─ ${prefix}rvo
 │ └────────
@@ -405,9 +405,9 @@ async function allmenu(client, m, smsg, store, args) {
 └────────
 │ ├─ ${prefix}mlstalk
 │ ├─ ${prefix}ttstalk
-│ ├─ ${prefix}cekbio
-│ ├─ ${prefix}cekbio2
-│ ├─ ${prefix}cekbio3
+│ ├─ ${prefix}checkbio
+│ ├─ ${prefix}checkbio2
+│ ├─ ${prefix}checkbio3
 │ ├─ ${prefix}ff
 │ ├─ ${prefix}igstalk
 │ ├─ ${prefix}stalktele
@@ -416,37 +416,37 @@ async function allmenu(client, m, smsg, store, args) {
 
 □ ./Search.js
 └────────
-│ ├─ ${prefix}cuaca
+│ ├─ ${prefix}weather
 │ ├─ ${prefix}github
 │ ├─ ${prefix}playstore
 │ ├─ ${prefix}playstore2
 │ ├─ ${prefix}detikcom
 │ ├─ ${prefix}ffnews
-│ ├─ ${prefix}ttphoto
+│ ├─ ${prefix}tiktokphoto
 │ ├─ ${prefix}happymood
 │ ├─ ${prefix}groupsor
 │ ├─ ${prefix}wikipedia
-│ ├─ ${prefix}cekgempa
+│ ├─ ${prefix}earthquake
 │ ├─ ${prefix}group
 │ └────────
 
 □ ./Random.js
 └────────
-│ ├─ ${prefix}pap
+│ ├─ ${prefix}randompic
 │ ├─ ${prefix}anime
 │ ├─ ${prefix}loli
 │ ├─ ${prefix}blue
 │ ├─ ${prefix}meme
 │ ├─ ${prefix}waifu
-│ ├─ ${prefix}kucing
+│ ├─ ${prefix}cat
 │ └────────
 
 □ ./Store.js
 └────────
 │ ├─ ${prefix}calculator
 │ ├─ ${prefix}ordertt
-│ ├─ ${prefix}pesantt
-│ ├─ ${prefix}ceksaldo
+│ ├─ ${prefix}orderservice
+│ ├─ ${prefix}balance
 │ ├─ ${prefix}amsend
 │ ├─ ${prefix}amsend2
 │ ├─ ${prefix}amverif
@@ -454,27 +454,27 @@ async function allmenu(client, m, smsg, store, args) {
 
 □ ./Fun.js
 └────────
-│ ├─ ${prefix}cekgila
-│ ├─ ${prefix}jodoh
-│ ├─ ${prefix}serfikat
-│ ├─ ${prefix}motivasi
-│ ├─ ${prefix}cekganteng
-│ ├─ ${prefix}cekkhodam
+│ ├─ ${prefix}insanity
+│ ├─ ${prefix}soulmate
+│ ├─ ${prefix}certificate
+│ ├─ ${prefix}motivation
+│ ├─ ${prefix}checkhandsome
+│ ├─ ${prefix}khodam
 │ ├─ ${prefix}roasting
-│ ├─ ${prefix}cecan
-│ ├─ ${prefix}cogan
+│ ├─ ${prefix}prettygirl
+│ ├─ ${prefix}handsomeguy
 │ ├─ ${prefix}animefind
-│ ├─ ${prefix}jarak
+│ ├─ ${prefix}distance
 │ └────────
 
 □ ./Game.js
 └────────
 │ ├─ ${prefix}pesawat
-│ ├─ ${prefix}slot777
+│ ├─ ${prefix}slots
 │ ├─ ${prefix}dino
 │ ├─ ${prefix}mbim
-│ ├─ ${prefix}tebakbom
-│ ├─ ${prefix}tebakangka
+│ ├─ ${prefix}guessbomb
+│ ├─ ${prefix}guessnumber
 │ ├─ ${prefix}ttt
 │ ├─ ${prefix}memory-match
 │ ├─ ${prefix}puzzle
@@ -507,9 +507,9 @@ async function allmenu(client, m, smsg, store, args) {
 □ ./Utility.js
 └────────
 │ ├─ ${prefix}totalchat
-│ ├─ ${prefix}cekkalender
+│ ├─ ${prefix}calendar
 │ ├─ ${prefix}readmore
-│ ├─ ${prefix}totalfitur
+│ ├─ ${prefix}totalfeatures
 │ └────────
 `;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
@@ -669,17 +669,17 @@ async function ownermenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}developerbot
 │ ├─ ${prefix}delseller
 │ ├─ ${prefix}listseller
-│ ├─ ${prefix}babu
+│ ├─ ${prefix}addseller
 │ ├─ ${prefix}save
 │ ├─ ${prefix}public
 │ ├─ ${prefix}self
 │ ├─ ${prefix}ping
 │ ├─ ${prefix}restart
 │ ├─ ${prefix}clearchat
-│ ├─ ${prefix}bersihbot
+│ ├─ ${prefix}cleanbot
 │ ├─ ${prefix}getcase
 │ ├─ ${prefix}done
-│ ├─ ${prefix}proses
+│ ├─ ${prefix}process
 │ ├─ ${prefix}pairs
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
@@ -832,7 +832,7 @@ async function jadibotmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}jadibot
 │ ├─ ${prefix}stopjadibot
 │ ├─ ${prefix}listjadibot
-│ ├─ ${prefix}bataljadibot
+│ ├─ ${prefix}canceljadibot
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
@@ -985,7 +985,7 @@ async function paymentmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}ovo
 │ ├─ ${prefix}gopay
 │ ├─ ${prefix}shopepay
-│ ├─ ${prefix}ambilq
+│ ├─ ${prefix}rawjson
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
@@ -1627,16 +1627,16 @@ async function imagemenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}upscale3
 │ ├─ ${prefix}delwatermark
 │ ├─ ${prefix}removebg
-│ ├─ ${prefix}tohitam
+│ ├─ ${prefix}toblack
 │ ├─ ${prefix}toghibli
 │ ├─ ${prefix}tochibi
 │ ├─ ${prefix}tocomic
-│ ├─ ${prefix}cine
+│ ├─ ${prefix}cinematic
 │ ├─ ${prefix}figure
 │ ├─ ${prefix}figure2
 │ ├─ ${prefix}blurface
 │ ├─ ${prefix}wink
-│ ├─ ${prefix}hitamin
+│ ├─ ${prefix}blacken
 │ └────────
 `;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
@@ -1786,7 +1786,7 @@ async function makermenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}fakeml2
 │ ├─ ${prefix}fakeff
 │ ├─ ${prefix}fakeffduo
-│ ├─ ${prefix}fakegrup
+│ ├─ ${prefix}fakegroup
 │ ├─ ${prefix}fakengl
 │ ├─ ${prefix}fakenasa
 │ ├─ ${prefix}fakenokia
@@ -1795,20 +1795,20 @@ async function makermenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}fakewindos
 │ ├─ ${prefix}fakewindos2
 │ ├─ ${prefix}fakeustadz
-│ ├─ ${prefix}fakepilih
+│ ├─ ${prefix}fakechoose
 │ ├─ ${prefix}fakedev
-│ ├─ ${prefix}fakemovi
-│ ├─ ${prefix}fakemovi2
-│ ├─ ${prefix}fakemovi3
-│ ├─ ${prefix}fakemovi4
-│ ├─ ${prefix}fakektp
+│ ├─ ${prefix}fakemovie
+│ ├─ ${prefix}fakemovie2
+│ ├─ ${prefix}fakemovie3
+│ ├─ ${prefix}fakemovie4
+│ ├─ ${prefix}fakeid
 │ ├─ ${prefix}fakestory
 │ ├─ ${prefix}igv2
 │ ├─ ${prefix}fakedana
 │ ├─ ${prefix}fakeovo
 │ ├─ ${prefix}fakegopay
 │ ├─ ${prefix}fakeprofil
-│ ├─ ${prefix}pakeko
+│ ├─ ${prefix}fakechat
 │ ├─ ${prefix}idcard
 │ ├─ ${prefix}meigen
 │ ├─ ${prefix}quotesmaker
@@ -1976,7 +1976,7 @@ async function toolsmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}skiplink
 │ ├─ ${prefix}subs4unlock
 │ ├─ ${prefix}sf
-│ ├─ ${prefix}cekwa
+│ ├─ ${prefix}checkwa
 │ ├─ ${prefix}enc
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
@@ -2129,7 +2129,7 @@ async function groupmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}antilink2
 │ ├─ ${prefix}antilinkch
 │ ├─ ${prefix}welcome
-│ ├─ ${prefix}kudeta
+│ ├─ ${prefix}coup
 │ ├─ ${prefix}mute
 │ ├─ ${prefix}demote
 │ ├─ ${prefix}tagall
@@ -2138,7 +2138,7 @@ async function groupmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}kick
 │ ├─ ${prefix}leave
 │ ├─ ${prefix}delete
-│ ├─ ${prefix}idgc
+│ ├─ ${prefix}groupid
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
@@ -2291,10 +2291,10 @@ async function jpmmenu(client, m, smsg, store, args) {
 │ ├─ ${prefix}delidch
 │ ├─ ${prefix}jpmch
 │ ├─ ${prefix}jpmch2
-│ ├─ ${prefix}cekidch
-│ ├─ ${prefix}jpm
-│ ├─ ${prefix}jpm2
-│ ├─ ${prefix}jpm3
+│ ├─ ${prefix}checkchannel
+│ ├─ ${prefix}broadcast
+│ ├─ ${prefix}broadcast2
+│ ├─ ${prefix}broadcast3
 │ ├─ ${prefix}upch
 │ ├─ ${prefix}rvo
 │ └────────`;
@@ -2447,9 +2447,9 @@ async function stalkmenu(client, m, smsg, store, args) {
 └────────
 │ ├─ ${prefix}mlstalk
 │ ├─ ${prefix}ttstalk
-│ ├─ ${prefix}cekbio
-│ ├─ ${prefix}cekbio2
-│ ├─ ${prefix}cekbio3
+│ ├─ ${prefix}checkbio
+│ ├─ ${prefix}checkbio2
+│ ├─ ${prefix}checkbio3
 │ ├─ ${prefix}ff
 │ ├─ ${prefix}igstalk
 │ ├─ ${prefix}stalktele
@@ -2602,17 +2602,17 @@ async function searchmenu(client, m, smsg, store, args) {
 
 □ ./Search.js
 └────────
-│ ├─ ${prefix}cuaca
+│ ├─ ${prefix}weather
 │ ├─ ${prefix}github
 │ ├─ ${prefix}playstore
 │ ├─ ${prefix}playstore2
 │ ├─ ${prefix}detikcom
 │ ├─ ${prefix}ffnews
-│ ├─ ${prefix}ttphoto
+│ ├─ ${prefix}tiktokphoto
 │ ├─ ${prefix}happymood
 │ ├─ ${prefix}groupsor
 │ ├─ ${prefix}wikipedia
-│ ├─ ${prefix}cekgempa
+│ ├─ ${prefix}earthquake
 │ ├─ ${prefix}group
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
@@ -2762,13 +2762,13 @@ async function randommenu(client, m, smsg, store, args) {
 
 □ ./Random.js
 └────────
-│ ├─ ${prefix}pap
+│ ├─ ${prefix}randompic
 │ ├─ ${prefix}anime
 │ ├─ ${prefix}loli
 │ ├─ ${prefix}blue
 │ ├─ ${prefix}meme
 │ ├─ ${prefix}waifu
-│ ├─ ${prefix}kucing
+│ ├─ ${prefix}cat
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
@@ -2918,8 +2918,8 @@ async function storemenu(client, m, smsg, store, args) {
 □ ./Store.js
 └────────
 │ ├─ ${prefix}ordertt
-│ ├─ ${prefix}pesantt
-│ ├─ ${prefix}ceksaldo
+│ ├─ ${prefix}orderservice
+│ ├─ ${prefix}balance
 │ ├─ ${prefix}amsend
 │ ├─ ${prefix}amsend2
 │ ├─ ${prefix}amverif
@@ -3071,17 +3071,17 @@ async function funmenu(client, m, smsg, store, args) {
 
 □ ./Fun.js
 └────────
-│ ├─ ${prefix}cekgila
-│ ├─ ${prefix}jodoh
-│ ├─ ${prefix}serfikat
-│ ├─ ${prefix}motivasi
-│ ├─ ${prefix}cekganteng
-│ ├─ ${prefix}cekkhodam
+│ ├─ ${prefix}insanity
+│ ├─ ${prefix}soulmate
+│ ├─ ${prefix}certificate
+│ ├─ ${prefix}motivation
+│ ├─ ${prefix}checkhandsome
+│ ├─ ${prefix}khodam
 │ ├─ ${prefix}roasting
-│ ├─ ${prefix}cecan
-│ ├─ ${prefix}cogan
+│ ├─ ${prefix}prettygirl
+│ ├─ ${prefix}handsomeguy
 │ ├─ ${prefix}animefind
-│ ├─ ${prefix}jarak
+│ ├─ ${prefix}distance
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {
@@ -3227,11 +3227,11 @@ async function gamemenu(client, m, smsg, store, args) {
 □ ./Game.js
 └────────
 │ ├─ ${prefix}pesawat
-│ ├─ ${prefix}slot777
+│ ├─ ${prefix}slots
 │ ├─ ${prefix}dino
 │ ├─ ${prefix}mbim
-│ ├─ ${prefix}tebakbom
-│ ├─ ${prefix}tebakangka
+│ ├─ ${prefix}guessbomb
+│ ├─ ${prefix}guessnumber
 │ ├─ ${prefix}ttt
 │ ├─ ${prefix}memory-match
 │ ├─ ${prefix}puzzle
@@ -3544,9 +3544,9 @@ async function utilitymenu(client, m, smsg, store, args) {
 □ ./Utility.js
 └────────
 │ ├─ ${prefix}totalchat
-│ ├─ ${prefix}cekkalender
+│ ├─ ${prefix}calendar
 │ ├─ ${prefix}readmore
-│ ├─ ${prefix}totalfitur
+│ ├─ ${prefix}totalfeatures
 │ └────────`;
   const buttonMsg = generateWAMessageFromContent(m.chat, {
     buttonsMessage: {

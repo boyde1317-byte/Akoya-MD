@@ -15,6 +15,9 @@ const ROOT = path.join(__dirname, '..');
 const menuSource = fs.readFileSync(path.join(ROOT, 'source', 'listfitur.js'), 'utf8');
 const caseSource = fs.readFileSync(path.join(ROOT, 'case.js'), 'utf8');
 
+// English command names mapped onto the handler that answers them
+const { ALIASES, resolveCommand } = require(path.join(ROOT, 'source', 'cmdalias.js'));
+
 // commands the switch answers
 const cases = new Set();
 {
@@ -56,15 +59,40 @@ while ((match = lineRe.exec(menuSource))) {
   advertised.set(name, (advertised.get(name) || 0) + 1);
 }
 
+const answers = name => cases.has(name) || htmlGames.has(name) || textGames.has(name);
+
 const missing = [];
 for (const [name] of advertised) {
-  if (cases.has(name) || htmlGames.has(name) || textGames.has(name)) continue;
+  // A menu advertises either the handler itself or its English alias.
+  if (answers(name) || answers(resolveCommand(name))) continue;
   missing.push(name);
 }
 
-console.log('menu entries:', advertised.size, '| cases:', cases.size, '| html cards:', htmlGames.size, '| text games:', textGames.size);
+// An alias that points at nothing is the same bug from the other side: the menu
+// would advertise a word that resolves to a handler nobody wrote.
+const deadAliases = Object.entries(ALIASES)
+  .filter(([, target]) => !answers(target))
+  .map(([alias, target]) => `${alias} -> ${target}`);
+
+// Two English names for one handler is fine; an English name that shadows a
+// different handler is not, because the alias would win silently.
+const shadowed = Object.keys(ALIASES)
+  .filter(alias => answers(alias) && resolveCommand(alias) !== alias)
+  .map(alias => `${alias} shadows the existing ${alias} handler`);
+
+console.log('menu entries:', advertised.size, '| cases:', cases.size, '| html cards:', htmlGames.size, '| text games:', textGames.size, '| aliases:', Object.keys(ALIASES).length);
+let failed = false;
 if (missing.length) {
   console.error('advertised but unhandled:', missing.join(', '));
-  process.exit(1);
+  failed = true;
 }
+if (deadAliases.length) {
+  console.error('alias points at a missing handler:', deadAliases.join(', '));
+  failed = true;
+}
+if (shadowed.length) {
+  console.error('alias shadowed by an existing handler:', shadowed.join(', '));
+  failed = true;
+}
+if (failed) process.exit(1);
 console.log('every advertised command resolves');

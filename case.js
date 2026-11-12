@@ -85,6 +85,9 @@ const {
   totalfitur
 } = require('./source/listfitur');
 const jadibotManager = require('./source/jadibot');
+// English command names resolve onto the handler below. `.weather` and `.cuaca`
+// are the same command; the menus advertise the English one.
+const { resolveCommand } = require('./source/cmdalias');
 const contacts = JSON.parse(fs.readFileSync("./library/database/contacts.json"));
 const owners = JSON.parse(fs.readFileSync("./library/database/owner.json"));
 const premium = JSON.parse(fs.readFileSync("./library/database/premium.json"));
@@ -349,6 +352,10 @@ module.exports = client = async (client, m, chatUpdate, store) => {
     const isCmd2 = body.startsWith(prefix);
     const args = body.trim().split(/ +/).slice(1);
     command = isCmd ? body.slice(prefix.length).trim().split(/ +/).shift().toLowerCase() : '';
+    // Dispatch key: the English alias if there is one, otherwise the word typed.
+    // `command` itself stays verbatim so every usage example echoes `.weather`
+    // to someone who typed `.weather`.
+    const cmdKey = resolveCommand(command);
     const text = q = args.join(' ');
     const cmd = prefix + command;
     const levenshtein = (a = '', b = '') => {
@@ -1257,9 +1264,9 @@ ${global.tekspromosi}
     /// ───────────── [ 𝖦𝖺𝗆𝖾𝗌 ] ──────────── ///
     // Kept outside the switch: the games live in library/games.js and each one
     // answers from its own per-chat state, so `.snake up` is just another turn.
-    if (global.htmlGameCommands && typeof global.htmlGameCommands[command] === 'function') {
+    if (global.htmlGameCommands && typeof global.htmlGameCommands[cmdKey] === 'function') {
       try {
-        await global.htmlGameCommands[command]({
+        await global.htmlGameCommands[cmdKey]({
           client,
           m,
           textGames: global.games,
@@ -1277,9 +1284,9 @@ ${global.tekspromosi}
       return;
     }
 
-    if (global.games && typeof global.games[command] === 'function') {
+    if (global.games && typeof global.games[cmdKey] === 'function') {
       try {
-        await global.games[command]({
+        await global.games[cmdKey]({
           client,
           m,
           chatUpdate,
@@ -1302,7 +1309,7 @@ ${global.tekspromosi}
       }
       return;
     }
-    switch (command) {
+    switch (cmdKey) {
       /// ───────────── [ 𝖬𝖾𝗇𝗎 𝖴𝗍𝖺𝗆𝖺 ] ──────────── ///
 
       case "menu":
@@ -3431,7 +3438,7 @@ ${e.message}`);
         break;
       case "hitamin":
         {
-          if (!/image/.test(mime)) return xreply("reply to the image you want blacked with the caption *hitamin*");
+          if (!/image/.test(mime)) return xreply("reply to the image you want blacked with the caption *blacken*");
           const mediaPath = await client.downloadAndSaveMediaMessage(qmsg);
           const buffer = fs.readFileSync(mediaPath);
           const base64Image = buffer.toString("base64");
@@ -3448,7 +3455,7 @@ ${e.message}`);
             const resultBuffer = Buffer.from(response.data.processedImageUrl.replace("data:image/png;base64,", ""), "base64");
             await client.sendMessage(m.chat, {
               image: resultBuffer,
-              caption: `Selesai, pake filter *hitam*`
+              caption: `Done, applied the *black* filter`
             }, {
               quoted: m
             });
@@ -3512,7 +3519,7 @@ ${prefix + command}`);
           } catch (err) {
             console.error("HD Error:", err?.response?.data || err.message);
             await client.sendMessage(m.chat, {
-              text: `⚠️ sorry , an error occurred during meng-HD-kan image.
+              text: `⚠️ sorry , an error occurred while upscaling the image.
 
 💡 Detail Error:
 ${err?.response?.data?.message || err.message}`
@@ -3610,7 +3617,7 @@ ${err?.response?.data?.message || err.message}`
               image: Buffer.from(data),
               caption: `📖 *Comic AI*
 
-✅ image success changed become style Comic.`
+✅ the image was converted to the comic style.`
             }, {
               quoted: m
             });
@@ -4336,7 +4343,7 @@ ${e.response?.data?.message || e.message}`);
       case 'subs4unlock':
         {
           if (!text) {
-            return xreply(`Masukkan URL subs4unlock!
+            return xreply(`enter the subs4unlock URL!
 example: ${prefix + command} https://subs4unlock.id/xxxxx`);
           }
           try {
@@ -4620,7 +4627,7 @@ Error: ${e}`
             let buffer = canvas.toBuffer('image/jpeg');
             await client.sendMessage(m.chat, {
               image: buffer,
-              caption: `*Fake Profile Selesai!*`
+              caption: `*Fake profile ready!*`
             }, {
               quoted: m
             });
@@ -4659,10 +4666,10 @@ ${prefix + command} Akoya-MD|500`);
               image: {
                 url: api
               },
-              caption: `乂 *FAKE GROUP success*
+              caption: `乂 *FAKE GROUP ready*
 
-📛 *Name group:* ${nama}
-👥 *Count Participants :* ${peserta}
+📛 *Group name:* ${nama}
+👥 *Participants:* ${peserta}
 
 > Powered By Akoya-MD`
             }, {
@@ -4728,9 +4735,9 @@ ${e.message}`);
               let teks = '📸 *Latest posts*\n\n';
               user.edges.slice(0, 10).forEach((v, i) => {
                 const tanggal = v.taken_at ? new Date(v.taken_at * 1000).toLocaleString('en-GB') : '-';
-                teks += `*${i + 1}. ${v.is_video ? '🎬 Video' : '🖼️ Foto'}*\n`;
+                teks += `*${i + 1}. ${v.is_video ? '🎬 Video' : '🖼️ Photo'}*\n`;
                 teks += `❤️ Like : ${v.like_count || 0}\n`;
-                teks += `💬 Komentar : ${v.comment_count || 0}\n`;
+                teks += `💬 Comments : ${v.comment_count || 0}\n`;
                 teks += `📅 Upload : ${tanggal}\n`;
                 if (v.video_url) teks += `🎬 Video : ${v.video_url}\n`;
                 teks += `🖼️ image: ${v.display_url}\n\n`;
@@ -4953,14 +4960,14 @@ Status: ${global.autoClaude[m.chat] ? "ON ✅" : "OFF ❌"}`);
             if (!text) {
               return xreply(`usage example:
 
-.cuaca tanjungbalai`);
+.weather tanjungbalai`);
             }
             const axios = require('axios');
             let {
               data
             } = await axios.get(`https://api.synoxcloud.xyz/search/cuaca?kota=${encodeURIComponent(text)}`);
             if (!data.status) {
-              return xreply("Data cuaca not found");
+              return xreply("no weather data found");
             }
             let res = data.data;
             let cuaca = {
@@ -4989,12 +4996,12 @@ Status: ${global.autoClaude[m.chat] ? "ON ✅" : "OFF ❌"}`);
             caption += `🌍 Negara : ${res.negara}\n`;
             caption += `🌡️ Suhu : ${res.suhu_celsius}°C\n`;
             caption += `💨 Angin : ${res.kecepatan_angin_kmh} km/j\n`;
-            caption += `☁️ Kondisi : ${cuaca[res.kode_cuaca] || res.kode_cuaca}\n`;
+            caption += `☁️ Condition : ${cuaca[res.kode_cuaca] || res.kode_cuaca}\n`;
             caption += `🕒 time: ${res.waktu}\n`;
             await xreply(caption);
           } catch (e) {
             console.log(e);
-            xreply("failed to fetch data cuaca");
+            xreply("failed to fetch weather data");
           }
         }
         break;
@@ -5024,19 +5031,19 @@ Status: ${global.autoClaude[m.chat] ? "ON ✅" : "OFF ❌"}`);
             const response = await fetch("https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json");
             const data = await response.json();
             if (!data || !data.Infogempa || !data.Infogempa.gempa) {
-              return xreply("failed to get data gempa from BMKG.");
+              return xreply("failed to get earthquake data from BMKG.");
             }
             const gempa = data.Infogempa.gempa;
             let caption = `*📈 LATEST EARTHQUAKE*\n\n`;
             caption += `*Date:* ${gempa.Tanggal}\n`;
             caption += `*Time:* ${gempa.Jam}\n`;
-            caption += `*Magnitudo:* ${gempa.Magnitude}\n`;
-            caption += `*Kedalaman:* ${gempa.Kedalaman}\n`;
-            caption += `*Lokasi:* ${gempa.Wilayah}\n`;
-            caption += `*Koordinat:* ${gempa.Lintang} ${gempa.Bujur}\n`;
-            caption += `*Potensi:* ${gempa.Potensi}\n`;
+            caption += `*Magnitude:* ${gempa.Magnitude}\n`;
+            caption += `*Depth:* ${gempa.Kedalaman}\n`;
+            caption += `*Location:* ${gempa.Wilayah}\n`;
+            caption += `*Coordinates:* ${gempa.Lintang} ${gempa.Bujur}\n`;
+            caption += `*Potential:* ${gempa.Potensi}\n`;
             caption += `*Felt:* ${gempa.Dirasakan}\n\n`;
-            caption += `Sumber: BMKG (https://www.bmkg.go.id/)`;
+            caption += `Source: BMKG (https://www.bmkg.go.id/)`;
             if (gempa.Shakemap) {
               const shakemapUrl = `https://data.bmkg.go.id/DataMKG/TEWS/${gempa.Shakemap}`;
               await client.sendMessage(m.chat, {
@@ -5056,7 +5063,7 @@ Status: ${global.autoClaude[m.chat] ? "ON ✅" : "OFF ❌"}`);
             }
           } catch (error) {
             console.log(error);
-            xreply("an error occurred while fetching data gempa.");
+            xreply("an error occurred while fetching the earthquake data.");
           }
         }
         break;
@@ -5068,7 +5075,7 @@ Status: ${global.autoClaude[m.chat] ? "ON ✅" : "OFF ❌"}`);
             if (!text) {
               return xreply(`usage example:
 
-.fakemovi4 stop yapping so much, agreed?`);
+.fakemovie4 stop yapping so much, agreed?`);
             }
             let quote = text.trim();
             let api = `https://api.synoxcloud.xyz/canvas/quotes-v5?text=${encodeURIComponent(quote)}`;
@@ -5095,7 +5102,7 @@ ${quote}`
             if (!text) {
               return xreply(`usage example:
 
-.fakemovi3 do not beg for attention from other people`);
+.fakemovie3 do not beg for attention from other people`);
             }
             let quote = text.trim();
             let api = `https://api.synoxcloud.xyz/canvas/quotes-v4?text=${encodeURIComponent(quote)}`;
@@ -5122,17 +5129,17 @@ ${quote}`
             if (!text) {
               return xreply(`usage example:
 
-.fakemovi2 not all friends can accept us in hard times,Akoya-MD
+.fakemovie2 not all friends can accept us in hard times,Akoya-MD
 
 Format:
-.fakemovi2 quote,author`);
+.fakemovie2 quote,author`);
             }
             let [quote, author] = text.split(',');
             if (!quote || !author) {
               return xreply(`wrong format!
 
 example:
-.fakemovi2 not all friends can accept us in hard times,Akoya-MD`);
+.fakemovie2 not all friends can accept us in hard times,Akoya-MD`);
             }
             let api = `https://api.synoxcloud.xyz/canvas/quotes-v1?quote=${encodeURIComponent(quote.trim())}&author=${encodeURIComponent(author.trim())}`;
             await client.sendMessage(m.chat, {
@@ -5203,13 +5210,13 @@ example:
             if (!text) {
               return xreply(`usage example:
 
-.fakemovi life does not always go well,@Akoya-MD`);
+.fakemovie life does not always go well,@Akoya-MD`);
             }
             let [quote, author] = text.split(",");
             if (!quote) {
               return xreply(`example:
 
-.fakemovi life does not always go well,@Akoya-MD`);
+.fakemovie life does not always go well,@Akoya-MD`);
             }
             quote = quote.trim();
             author = author ? author.trim() : "@Akoya-MD";
@@ -5320,8 +5327,8 @@ example:
           try {
             if (!text) return xreply(`usage example:
 
-.cekwa 62××××
-.cekwa 08××××`);
+.checkwa 62××××
+.checkwa 08××××`);
             let nomor = text.replace(/[^0-9]/g, "");
             if (nomor.startsWith("08")) {
               nomor = "62" + nomor.slice(1);
@@ -5393,14 +5400,14 @@ example:
       case "fakepilih":
         {
           if (!text) {
-            return xreply("example:\n.fakepilih Messi,Ronaldo");
+            return xreply("example:\n.fakechoose Messi,Ronaldo");
           }
           let [teks1, teks2] = text.split(",");
           if (!teks1 || !teks2) {
-            return xreply("wrong format!\nexample:\n.fakepilih Messi,Ronaldo");
+            return xreply("wrong format!\nexample:\n.fakechoose Messi,Ronaldo");
           }
           try {
-            await xreply("⏳ Membuat image...");
+            await xreply("⏳ creating the image...");
             const url = `https://api.synoxcloud.xyz/canvas/drakehotline?teks1=${encodeURIComponent(teks1.trim())}&teks2=${encodeURIComponent(teks2.trim())}`;
             await client.sendMessage(m.chat, {
               image: {
@@ -7065,7 +7072,7 @@ ${JSON.stringify(json).slice(0, 1500)}\n\`\`\``);
 • *Tayang:* ${new Date(video.snippet.publishedAt).toLocaleDateString()}
 • *Views:* ${video.statistics.viewCount}
 • *Likes:* ${video.statistics.likeCount}
-• *Komentar:* ${video.statistics.commentCount}
+• *Comment:* ${video.statistics.commentCount}
 • *Kategori ID:* ${video.snippet.categoryId}
 • *Status:* ${video.status.privacyStatus}
 • *Lisensi:* ${video.status.license}
@@ -7177,7 +7184,7 @@ ${video.snippet.description?.slice(0, 1000) || "no description."}`;
             caption += `🏷 Username : ${res.user?.username || "-"}\n`;
             caption += `❤️ Likes : ${res.stats?.likes || 0}\n`;
             caption += `🔁 Shares : ${res.stats?.shares || 0}\n`;
-            caption += `💬 Komentar : ${res.stats?.comments || 0}\n`;
+            caption += `💬 Comments : ${res.stats?.comments || 0}\n`;
             caption += `🎬 Tipe : ${res.type || "-"}\n`;
             if (res.type === "video" && res.download) {
               let videoUrl = String(res.download).replace(/\\\//g, "/").trim();
@@ -7682,11 +7689,11 @@ ${video.snippet.description?.slice(0, 1000) || "no description."}`;
         {
           const nama = text || m.pushName || "you";
           const persen = Math.floor(Math.random() * 101);
-          const komentar = ["Normal... like a brick.", "A bit odd, but still worth talking to.", " starting to act up, please handle it.", "wow, this is absolutely hilarious.", 'God tier... crazy but cool.', "Crazy, even the bot gets a headache reading your chat.", "It seems enggak can saved 😭", "you are sane, but only while asleep.", "Quietly insane... scary.", 'Insane with a professional style. Respect.'];
+          const komentar = ["Normal... like a brick.", "A bit odd, but still worth talking to.", " starting to act up, please handle it.", "wow, this is absolutely hilarious.", 'God tier... crazy but cool.', "Crazy, even the bot gets a headache reading your chat.", "It seems this one cannot be saved 😭", "you are sane, but only while asleep.", "Quietly insane... scary.", 'Insane with a professional style. Respect.'];
           const kata = komentar[Math.floor(Math.random() * komentar.length)];
           xreply(`🧠 *today's insanity test*
 
-📝 name: *${nama}*\n📊 Tingkat Crazy: *${persen}%*\n🗯️ Komentar: *${kata}*`);
+📝 name: *${nama}*\n📊 Crazy level: *${persen}%*\n🗯️ Comment: *${kata}*`);
         }
         break;
       case 'jodoh':
@@ -7931,7 +7938,7 @@ Koleksi Cecan from Various Negara
             });
           } catch (err) {
             console.error(err);
-            xreply("failed to fetch data cogan.");
+            xreply("failed to fetch the pictures.");
           }
         }
         break;
@@ -7948,7 +7955,7 @@ Koleksi Cecan from Various Negara
             // no profile picture to show: fall back to the bundled brand art
             ppthumb = /^https?:\/\//.test(String(global.image.menu)) ? global.image.menu : null;
           }
-          const roastList = [`@user, sometimes I think, you are like a 1-bar signal in the middle of a forest—useless, but always showing up when no one needs you.`, `@user, you like charger 15 ribuan—can used, tapi bikin panas and ngerusak everything.`, `@user, if your brain were sold on a marketplace, would probably be listed under "rusak parah, sold by the kilo".`, `@user, you like WiFi tetangga—kelihatan tapi nggak can used. Ngeselin!`, `@user, if ngomong like a remixed song—lots of noise but no clear point.`, `@user, you not exactly toxic — more like hazardous waste that should be quarantined for 40 years.`, `@user, your lifestyle is like a 9th-semester thesis: going nowhere, full of excuses, zero results.`, `@user, you are like an unsolvable CAPTCHA, only ever annoying people.`, `@user, if you were a game character, you would be the NPC handing out failed quests from the start.`, `@user, honestly... every time you open your mouth, the room's IQ drops 10 points.`, `@user, muka you like error 404—nggak ketemu the solution, bikin stres.`, `@user, as an animal, you would definitely be a mythical creature, nobody understands your existence.`, `@user, you are like a 5 AM alarm on a holiday, pointless, just ruins peoples sleep.`, `@user, your IQ is like red ping: high but useless.`, `@user, you are like a corrupt file — opening it is infuriating, deleting it wastes your data.`, `@user, if being a burden were a contest, you would be champion five years running.`, `@user, jokes you like sinetron azab—maksa, basi, tapi tetep aja nongol.`, `@user, ngomong sama you like ngisi CAPTCHA terus failed, muter-muter gak jelas.`, `@user, if your laugh were recorded, it could be used to scare off ghosts.`, `@user, gaya you like intro YouTuber 2012—lebay, norak, and pengen skip.`, `@user, you are like a broken charger, it connects, but it shocks peoples feelings.`, `@user, every time you show up, the vibe errors out like Windows—tiba-tiba, bikin panik, and nyusahin.`, `@user, you are like a deactivated WiFi password, still remembered, but useless.`, `@user, you are like a family WhatsApp group: busy, but pointless.`, `@user, if you were an app, you would need a daily update and still lag.`, `@user, your face is like a zip file, small but full of heavy stuff.`, `@user, your vibes are like a 1% battery, just waiting to be drained by lazy people.`, `@user, if you were a soap opera, it would be titled *"Rebel Child Who Forgot to Update Their Brain."*`, `@user, you are like a failed download, you waited forever, then it errored anyway.`, `@user, your brain is like a free server: down every time it is needed.`, `@user, if you were an emoji, you would be "buffering".`, `@user, IQ you like koneksi WiFi publik—all can pake, tapi nggak can reliable.`, `@user, every time you speak, grammar itself weeps.`, `@user, as a movie, you would get 1 star from both netizens and the supernatural.`, `@user, your jokes are like a 2010 Facebook status: dry, dated, and embarrassing.`];
+          const roastList = [`@user, sometimes I think, you are like a 1-bar signal in the middle of a forest—useless, but always showing up when no one needs you.`, `@user, you are like a 15-buck charger: it works, but it runs hot and ruins everything.`, `@user, if your brain were sold on a marketplace, would probably be listed as \"badly damaged, sold by the kilo\".`, `@user, you are like the neighbour's WiFi: visible, but unusable. Infuriating!`, `@user, when you talk it is like a remixed song: lots of noise, no clear point.`, `@user, you not exactly toxic — more like hazardous waste that should be quarantined for 40 years.`, `@user, your lifestyle is like a 9th-semester thesis: going nowhere, full of excuses, zero results.`, `@user, you are like an unsolvable CAPTCHA, only ever annoying people.`, `@user, if you were a game character, you would be the NPC handing out failed quests from the start.`, `@user, honestly... every time you open your mouth, the room's IQ drops 10 points.`, `@user, your face is like error 404: no solution found, and it stresses everyone out.`, `@user, as an animal, you would definitely be a mythical creature, nobody understands your existence.`, `@user, you are like a 5 AM alarm on a holiday, pointless, just ruins peoples sleep.`, `@user, your IQ is like red ping: high but useless.`, `@user, you are like a corrupt file — opening it is infuriating, deleting it wastes your data.`, `@user, if being a burden were a contest, you would be champion five years running.`, `@user, your jokes are like a cheap soap opera: forced, stale, and somehow still on air.`, `@user, talking to you is like failing a CAPTCHA over and over: circles with no answer.`, `@user, if your laugh were recorded, it could be used to scare off ghosts.`, `@user, your style is a 2012 YouTube intro: over the top, tacky, and worth skipping.`, `@user, you are like a broken charger, it connects, but it shocks peoples feelings.`, `@user, every time you show up the vibe crashes like Windows: suddenly, noisily, and at everyone's expense.`, `@user, you are like a deactivated WiFi password, still remembered, but useless.`, `@user, you are like a family WhatsApp group: busy, but pointless.`, `@user, if you were an app, you would need a daily update and still lag.`, `@user, your face is like a zip file, small but full of heavy stuff.`, `@user, your vibes are like a 1% battery, just waiting to be drained by lazy people.`, `@user, if you were a soap opera, it would be titled *"Rebel Child Who Forgot to Update Their Brain."*`, `@user, you are like a failed download, you waited forever, then it errored anyway.`, `@user, your brain is like a free server: down every time it is needed.`, `@user, if you were an emoji, you would be "buffering".`, `@user, your IQ is like public WiFi: everyone can use it, nobody can rely on it.`, `@user, every time you speak, grammar itself weeps.`, `@user, as a movie, you would get 1 star from both netizens and the supernatural.`, `@user, your jokes are like a 2010 Facebook status: dry, dated, and embarrassing.`];
           const roastText = roastList[Math.floor(Math.random() * roastList.length)].replace(/@user/g, `@${orang.split('@')[0]}`);
           try {
             await client.sendMessage(orang, {
@@ -8387,7 +8394,7 @@ ${prefix + command} https://www.instagram.com/reel/DaH1GCUvqVn/?igsh=xxxxx`);
         {
           if (!text) return reply("type your name");
           const khodam = pickRandom(["Kaleng Cat Avian", "Pipa Rucika", "King black", "Two-door wardrobe", "Kacang Hijau", "Kulkas mini", "Burung beo", "Air", "Api", "Batu", "Magnet", "Sempak", "Botol Tupperware", "Badut Mixue", "Sabun GIV", "Sandal Swallow", "Jarjit", "Ijat", "Fizi", "Mail", "Ehsan", "Upin", "Ipin", "sungut lele", "Tok Dalang", "Opah", "Opet", "Alul", "Pak Vinsen", "Maman Resing", "Pak RT", "ETI admin", "Bung Towel", "Lumpia Basah", "Bjorka", "Hacker", "Martabak Manis", "Baso Tahu", "Tahu Gejrot", "Dimsum", "Seblak", "Aromanis", "Gelembung sabun", "Kuda", "Seblak Ceker", "Telor Gulung", "Tahu Aci", "Tempe Mendoan", "Nasi Kucing", "Kue Cubit", "Tahu Sumedang", "Nasi Uduk", "Wedang Ronde", "Kerupuk Udang", "Cilok", "Cilung", "Kue Sus", "Jasuke", "Seblak Makaroni", "Sate Padang", "Sayur Asem", "Kromboloni", "Marmut Pink", "Belalang Mullet", "Kucing Oren", "Lintah Flying", "Singa Paddle Pop", "Macan Cisewu", "Vario Mber", "Beat Mber", "Supra Geter", "Oli Samping", "Knalpot Racing", "Jus Stroberi", "Jus Alpukat", "Alpukat Kocok", "Es Kopyor", "Es Jeruk", "@adiwajshing/baileys", "chalk", "gradient-string", "@adiwajshing", "d-scrape", "undefined", "cannot read properties", "performance-now", "os", "node-fetch", "form-data", "axios", "util", "fs-extra", "scrape-primbon", "child_process", "emoji-regex", "check-disk-space", "perf_hooks", "moment-timezone", "cheerio", "fs", "process", "require( . . . )", "import ... from ...", "rate-overlimit", "Cappucino Cincau", "Jasjus Melon", "Teajus Apel", "Pop ice Mangga", "Teajus Gulabatu", "Air Selokan", "Air Kobokan", "TV Tabung", "Keran Air", "Pot lid", "Kotak Amal", "Thermos lid", "Bottle cap", "Kresek Item", "Kepala Casan", "Ban Serep", "Kursi Lipat", "Kursi Goyang", "Kulit Pisang", "Warung Madura", "Gorong-gorong"]);
-          const response = `Khodam mu is: *${khodam}*`;
+          const response = `Your khodam is: *${khodam}*`;
           xreply(response);
         }
         break;
@@ -8414,7 +8421,7 @@ ${prefix + command} https://www.instagram.com/reel/DaH1GCUvqVn/?igsh=xxxxx`);
           }
           const score = Math.floor(Math.random() * 100) + 1;
           let komentar, emoji;
-          if (command == 'cekganteng') {
+          if (cmdKey == 'cekganteng') {
             if (score >= 90) {
               komentar = 'His looks overload! Bikin cewek-cewek auto salfok!';
               emoji = '🔥👑💯';
@@ -8434,14 +8441,14 @@ ${prefix + command} https://www.instagram.com/reel/DaH1GCUvqVn/?igsh=xxxxx`);
               komentar = 'Ouch... hiding the looks, are we?';
               emoji = '🥲💀👻';
             }
-            const result = `*handsomeness check for:* ${targetName}\n\n` + `*Value Ganteng:* *${score}/100* ${emoji}\n\n` + `*Komentar:* ${komentar}`;
+            const result = `*handsomeness check for:* ${targetName}\n\n` + `*Value Ganteng:* *${score}/100* ${emoji}\n\n` + `*Comment:* ${komentar}`;
             client.sendMessage(m.chat, {
               text: result,
               mentions: [targetJid]
             }, {
               quoted: m
             });
-          } else if (command == 'cekcantik') {
+          } else if (cmdKey == 'cekcantik') {
             if (score >= 90) {
               komentar = 'Her beauty makes flowers jealous and the moon insecure.';
               emoji = '🌷✨🌙';
@@ -8461,7 +8468,7 @@ ${prefix + command} https://www.instagram.com/reel/DaH1GCUvqVn/?igsh=xxxxx`);
               komentar = "Her beauty is like a riddle, still a mystery.";
               emoji = '🕵️‍♀️❓🌑';
             }
-            const result = `*Beauty check for:* ${targetName}\n\n` + `*Score Kecantikan:* *${score}/100* ${emoji}\n\n` + `*Komentar:* ${komentar}`;
+            const result = `*Beauty check for:* ${targetName}\n\n` + `*Beauty score:* *${score}/100* ${emoji}\n\n` + `*Comment:* ${komentar}`;
             client.sendMessage(m.chat, {
               text: result,
               mentions: [targetJid]
@@ -8719,7 +8726,7 @@ Total *${halls.length}* contacts`,
             var onWa = await client.onWhatsApp(input.split("@")[0]);
             if (onWa.length < 1) return xreply("the number is not registered on WhatsApp");
             const res = await client.groupParticipantsUpdate(m.chat, [input], 'remove');
-            await xreply(`success mengeluarkan ${input.split("@")[0]} from the group `);
+            await xreply(`Removed ${input.split("@")[0]} from the group `);
           } else {
             return xreply(example("@tag/reply"));
           }
@@ -8816,7 +8823,7 @@ Total *${halls.length}* contacts`,
             if (global.db.groups[m.chat].antitagsw == true) return xreply(`*Antitagsw* is already enabled in the group!`);
             global.db.groups[m.chat].antitagsw = true;
             global.markDatabaseDirty?.();
-            return reply("success turning on *antitagsw* in group " + (isBotAdmin ? "" : "\n\n⚠️ Bot not yet jadi admin, jadikan bot admin so that can delete message tag status."));
+            return reply("success turning on *antitagsw* in group " + (isBotAdmin ? "" : "\n\n⚠️ the bot is not an admin yet. make it an admin so it can delete tag-status messages."));
           } else if (teks == "off") {
             if (global.db.groups[m.chat].antitagsw == false) return xreply(`*Antitagsw* in group inactive!`);
             global.db.groups[m.chat].antitagsw = false;
@@ -8845,7 +8852,7 @@ Total *${halls.length}* contacts`,
             }
             if (!rows.length) return xreply("📭 no story captured.");
             return client.sendMessage(m.chat, {
-              text: `*Sw Tersimpan*\n${rows.slice(0, 40).join("\n")}
+              text: `*Saved statuses*\n${rows.slice(0, 40).join("\n")}
 Get with: ${prefix}getsw @user`,
               mentions: rows.slice(0, 40).map(r => r.match(/@(\d+)/)[1] + "@s.whatsapp.net")
             }, {
@@ -8891,7 +8898,7 @@ list: *${prefix}getsw list*`);
           swItems.sort((a, b) => a.timestamp - b.timestamp);
           if (!swItems.length) {
             return client.sendMessage(m.chat, {
-              text: `📭 no story from @${swUserKey(swTarget)} tertangkap.
+              text: `📭 no story from @${swUserKey(swTarget)} captured.
 
 the bot can only capture stories while it is online, and only from contacts who share stories with the bot number.`,
               mentions: [swTarget.includes('@') ? swTarget : swTarget + '@s.whatsapp.net']
@@ -9211,8 +9218,8 @@ ${e.message}`);
       case "listowner":
       case "listown":
         {
-          if (owners.length < 1) return xreply("no owner tambahan");
-          let teks = `\n *乂 List all owner tambahan*\n`;
+          if (owners.length < 1) return xreply("no additional owners");
+          let teks = `\n *乂 List of additional owners*\n`;
           for (let i of owners) {
             teks += `\n* ${i.split("@")[0]}
 * *Tag :* @${i.split("@")[0]}\n`;
@@ -10036,7 +10043,7 @@ please register channel first.
 `);
           xreply(`
 ╭─❰ *PROCESSING MESSAGE* ❱─╮ 
-📮 *Mengirim message Ke*: 
+📮 *sending the message to*: 
  ➥ *${global.channels.length} Channel* 
 ⏳ *please wait...* 
 ╰─────────────────────╯ 
@@ -10306,7 +10313,7 @@ name Channel: ${res.name}`);
       case "cekidch":
       case "idch":
         {
-          if (!text) return reply(example("linkchnya 🤨"));
+          if (!text) return reply(example("the channel link 🤨"));
           if (!text.includes("https://whatsapp.com/channel/")) return reply("invalid link");
           let kode = text.split("https://whatsapp.com/channel/")[1].split(/[/?\s]/)[0];
           let res = await client.newsletterMetadata("invite", kode).catch(() => null);
@@ -10379,7 +10386,7 @@ name Channel: ${res.name}`);
           const rchLink = args[0];
           let rchEmojiRaw = args.slice(1).join(' ').trim();
           if (!rchLink || !rchEmojiRaw) {
-            return xreply(`The format is incomplete~ 📋\n\n` + `*${prefix + command} <link_pesan_channel> <emoji1,emoji2>*\n\n` + `example:
+            return xreply(`The format is incomplete~ 📋\n\n` + `*${prefix + command} <channel_message_link> <emoji1,emoji2>*\n\n` + `example:
 ` + `*${prefix + command} https://whatsapp.com/channel/xxx/5 😭,🔥*`);
           }
           if (!rchLink.includes('whatsapp.com/channel/')) {
@@ -10398,7 +10405,7 @@ name Channel: ${res.name}`);
           }
           const rchEmojis = rchEmojiRaw.split(',').map(e => e.trim()).filter(Boolean);
           if (!rchEmojis.length) return xreply("Emoji- mana ~ 😅🌸");
-          if (rchEmojis.length > 4) return xreply("Maximum 4 emoji aja ~ 🌸");
+          if (rchEmojis.length > 4) return xreply("Maximum 4 emoji ~ 🌸");
           await client.sendMessage(m.chat, {
             react: {
               text: '🕒',
@@ -10530,7 +10537,7 @@ ${prefix + command} Jakarta|Jakarta Timur|31752331637393|Reyz|24-04-2008 Jakarta
               return xreply(`*⚠️ Missing parameters!*
 
 Required *18 parameters*, but only received *${params.length}*.
-*Make sure urutan parameter matching example!*`);
+*Make sure the parameter order matches the example!*`);
             }
             const baseURL = 'https://theresapisv3.vercel.app/canvas/ektp';
             const query = new URLSearchParams({
@@ -10623,26 +10630,26 @@ Required *18 parameters*, but only received *${params.length}*.
           try {
             const axios = require('axios');
             if (!text) {
-              return xreply(`📦 *PESANTT ORDER*
+              return xreply(`📦 *ORDER SERVICE*
 
 how to use:
-.pesantt <service>|<target>|<quantity>
+.orderservice <service>|<target>|<quantity>
 
 example:
-.pesantt 9|sebastianwirajaya11|100`);
+.orderservice 9|sebastianwirajaya11|100`);
             }
             const parts = text.split('|');
             if (parts.length < 3) {
               return xreply(`❌ wrong format
 
 example:
-.pesantt 9|username|100`);
+.orderservice 9|username|100`);
             }
             const service = parts[0].trim();
             const target = parts[1].trim();
             const quantity = parseInt(parts[2]);
             if (isNaN(service) || isNaN(quantity)) {
-              return xreply(`❌ Service and quantity must angka`);
+              return xreply(`❌ The service and the quantity must be numbers`);
             }
             if (!target) {
               return xreply(`❌ the target must not be empty`);
@@ -10667,7 +10674,7 @@ example:
               return xreply("❌ no response from the server");
             }
             if (data.status !== true) {
-              return xreply(`❌ ${data.msg || "failed to create pesanan"}`);
+              return xreply(`❌ ${data.msg || "failed to create the order"}`);
             }
             Reply(`
 ✅ *ORDER placed*
@@ -10711,15 +10718,15 @@ example:
               if (svc) services.push(svc);
             }
             if (!services.length) {
-              return xreply("❌ Layanan TikTok not found");
+              return xreply("❌ TikTok services not found");
             }
             let menu = `📦 *TIKTOK BOOST LIST*
 
-please copy ID service using tombol dibawah.
+please copy the service ID with the button below.
 
 example order:
 
-.pesantt
+.orderservice
 
 ─────────────────
 
@@ -10788,7 +10795,7 @@ example order:
                   name: "quick_reply",
                   buttonParamsJson: JSON.stringify({
                     display_text: "🛒 ORDER TIKTOK",
-                    id: ".pesantt"
+                    id: ".orderservice"
                   })
                 }, {
                   name: "cta_copy",
@@ -10961,7 +10968,7 @@ ${e.message}`);
             Reply("⏳ Uploading photo to Pixhost...");
             const buffer = await m.quoted.download();
             const imageUrl = await uploadPixhost(buffer, "iqcv2.jpg");
-            Reply("⏳ Membuat IQC V2...");
+            Reply("⏳ rendering IQC V2...");
             const api = `https://api-nanzz.my.id/docs/api/maker/iqc-gambar.php?text=${encodeURIComponent(pesan)}&url=${encodeURIComponent(imageUrl)}&carrier=${encodeURIComponent(carrier)}&battery=${battery}&signal=${signal}&sender=${sender}&read=${read}`;
             await client.sendMessage(m.chat, {
               image: {
@@ -11024,7 +11031,7 @@ ${e.message}`);
               }
             });
             let [username, caption] = text.split('|');
-            if (!username || !caption) return xreply(`Kek gini:\n.${command} Ichika|hmm...`);
+            if (!username || !caption) return xreply(`Like this:\n.${command} Ichika|hmm...`);
             const bgUrl = 'https://files.catbox.moe/3gwr1l.jpg';
             const bg = await loadImage(bgUrl);
             const userPP = await client.profilePictureUrl(m.sender, 'image').catch(_ => 'https://img1.pixhost.to/images/5831/600387261_biyu-offc.jpg');
@@ -11104,8 +11111,8 @@ example:
 .fakegopay 10000,150,0,Juni`);
             }
             if (isNaN(saldo)) return xreply("the balance must be a number!");
-            if (isNaN(koin)) return xreply("Coins must in the form of angka!");
-            if (isNaN(terpakai)) return xreply("Used must in the form of angka!");
+            if (isNaN(koin)) return xreply("Coins must be numbers!");
+            if (isNaN(terpakai)) return xreply("Used must be numbers!");
             let api = `https://api.synoxcloud.xyz/canvas/fake-gopay?saldo=${encodeURIComponent(saldo)}&koin=${encodeURIComponent(koin)}&terpakai=${encodeURIComponent(terpakai)}&bulan=${encodeURIComponent(bulan)}`;
             await client.sendMessage(m.chat, {
               image: {
@@ -11285,7 +11292,7 @@ ${prefix}binary --text "01001000"\n${prefix}binary --binarycode "Hello"`
             const tekstobin = teks.startsWith('--binarycode');
             if (!bintoteks && !tekstobin) {
               return client.sendMessage(m.chat, {
-                text: `- Tentukan mode konversi:\n--text (binary to text)\n--binarycode (text to binary)`
+                text: `- choose a conversion mode:\n--text (binary to text)\n--binarycode (text to binary)`
               }, {
                 quoted: m
               });
@@ -11610,12 +11617,12 @@ From: ${message.from || 'Anomali'}\n*Subject :* ${message.subject || 'No Subject
             const fixed = num => (num * 100).toFixed(2);
             if (!res.is_char) return xreply("no characters were detected in that image");
             const teks = `
-*⎣⧉⎤ Karakter detected is*
+*⎣⧉⎤ Character detected is*
 > *Name:* ${res.data.character.name}
 > *Percentage:* ${fixed(res.data.character.list[0].confidence || 0)}%
 ${res.data.character.list.length >= 2 ? `
-*⎣⧉⎤ Karakter lain terdeteksi*
-${res.data.character.list.map(it => `> *Nama:* ${it.label}\n> *Percentage:* ${fixed(it.confidence || 0)}%`).join('\n\n')}\n` : ''}
+*⎣⧉⎤ Other characters detected*
+${res.data.character.list.map(it => `> *Name:* ${it.label}\n> *Percentage:* ${fixed(it.confidence || 0)}%`).join('\n\n')}\n` : ''}
 *⎣⧉⎤ Prompt*
 ${res.data.prompt}
 
@@ -11628,7 +11635,7 @@ ${res.data.tags.list.map(it => `> *${it.label}:* ${fixed(it.confidence || 0)}%`)
             xreply(teks);
           } catch (e) {
             console.error(e);
-            xreply(`an error occurred during mendeteksi character!
+            xreply(`an error occurred while detecting the character!
 
 ${e.message}`);
           }
@@ -11910,7 +11917,7 @@ ${e.message}`);
               client.groupSettingUpdate(m.chat, 'not_announcement');
               xreply("*time* the group was opened by an admin\nmembers can now send messages");
             } catch (err) {
-              xreply("an error occurred during membuka group");
+              xreply("an error occurred while opening the group");
               console.log(err);
             }
           }, timer);
@@ -11970,7 +11977,7 @@ ${e.message}`);
             }
             ;
           } catch (e) {
-            xreply("❌ Gomene Error Maybe you kebanyakan request");
+            xreply("❌ Error, maybe too many requests");
             console.error(e);
           }
           ;
@@ -12050,7 +12057,7 @@ ${e.message}`);
                   let $ = cheerio.load(init.data);
                   const meta = sfile.extractMetadata($);
                   const dl = $('#download').attr('href');
-                  if (!dl) throw new Error('Download URL gak ketemu');
+                  if (!dl) throw new Error('download URL not found');
                   h.Referer = dl;
                   const proc = await sfile.makeRequest(dl, {
                     headers: h
@@ -12060,7 +12067,7 @@ ${e.message}`);
                   const scr = $('script').map((i, el) => $(el).html()).get().join('\n');
                   const re = /https:\\\/\\\/download\d+\.sfile\.mobi\\\/downloadfile\\\/\d+\\\/\d+\\\/[a-z0-9]+\\\/[^\s'"]+\.[a-z0-9]+(\?[^"']+)?/gi;
                   const mt = scr.match(re);
-                  if (!mt?.length) throw new Error('Link download final gak ketemu in script');
+                  if (!mt?.length) throw new Error('final download link not found in the script');
                   const fin = mt[0].replace(/\\\//g, '/');
                   let download;
                   if (resultBuffer) {

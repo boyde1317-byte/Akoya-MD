@@ -248,7 +248,7 @@ async function tebakangka(ctx) {
       high: 100,
       low: 1
     });
-    return ctx.reply(`🎲 *Guess the number* between 1 and 100. Seven tries.\n\nSend \`.tebakangka 42\`.`);
+    return ctx.reply(`🎲 *Guess the number* between 1 and 100. Seven tries.\n\nSend \`.guessnumber 42\`.`);
   }
   if (['end', 'stop', 'quit'].includes(arg)) {
     drop('tebakangka', ctx.m.chat);
@@ -256,16 +256,16 @@ async function tebakangka(ctx) {
   }
 
   const guess = parseInt(arg, 10);
-  if (!Number.isFinite(guess)) return ctx.reply('Send a number: `.tebakangka 42`.');
+  if (!Number.isFinite(guess)) return ctx.reply('Send a number: `.guessnumber 42`.');
 
   state.tries -= 1;
   if (guess === state.secret) {
     drop('tebakangka', ctx.m.chat);
-    return ctx.reply(`✅ *${guess}* is it. You had ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.\n\nAgain with \`.tebakangka\`.`);
+    return ctx.reply(`✅ *${guess}* is it. You had ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.\n\nAgain with \`.guessnumber\`.`);
   }
   if (state.tries <= 0) {
     drop('tebakangka', ctx.m.chat);
-    return ctx.reply(`Out of tries. It was *${state.secret}*.\n\nAgain with \`.tebakangka\`.`);
+    return ctx.reply(`Out of tries. It was *${state.secret}*.\n\nAgain with \`.guessnumber\`.`);
   }
 
   if (guess < state.secret) state.low = Math.max(state.low, guess + 1);

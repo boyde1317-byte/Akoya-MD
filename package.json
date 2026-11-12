@@ -1,6 +1,6 @@
 {
   "name": "akoya-md",
-  "version": "2.6.2",
+  "version": "2.7.0",
   "description": "Akoya-MD \u2014 WhatsApp Bot Multi Device (type case)",
   "main": "index.js",
   "type": "commonjs",
@@ -9,7 +9,8 @@
     "test:session": "node scripts/session-selftest.js",
     "build:games": "node tools/build-htmlgames.js",
     "test:games": "node tools/test-htmlgames.js",
-    "check:menu": "node tools/check-menu.js"
+    "check:menu": "node tools/check-menu.js",
+    "test:aliases": "node scripts/alias-selftest.js"
   },
   "keywords": [
     "akoya-md",
