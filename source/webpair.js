@@ -585,6 +585,10 @@ async function route(req, res) {
     const session = handlers.sessionInfo ? await handlers.sessionInfo().catch(() => null) : null;
     return sendJson(res, 200, {
       ok: true,
+      // Which build is answering. Without this, confirming a deploy means
+      // reading the machine by hand.
+      version: require('../package.json').version,
+      startedAt: new Date(startedAt).toISOString(),
       uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
       phase: state.phase,
       linked: !!(snap.registered || state.phase === 'linked'),
