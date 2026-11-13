@@ -1,5 +1,15 @@
-process.on('uncaughtException', console.error);
-process.on('unhandledRejection', console.error);
+// A fatal error used to be logged and swallowed, leaving the bot running in
+// an unknown state forever (Fly only restarts on exit). An uncaught
+// exception now exits so the host restarts the bot cleanly. Unhandled
+// rejections stay log-only on purpose: this codebase has many
+// fire-and-forget promises, and exiting on each rejected one would flap.
+process.on('uncaughtException', error => {
+  console.error('[FATAL] uncaught exception, exiting so the host restarts the bot:', error);
+  process.exit(1);
+});
+process.on('unhandledRejection', error => {
+  console.error('[FATAL] unhandled rejection:', error);
+});
 require('./settings');
 
 /// ───────── [ 𝖬𝗈𝖽𝗎𝗅𝖾𝗌 ] ───────── ///
@@ -356,7 +366,8 @@ module.exports = client = async (client, m, chatUpdate, store) => {
     // `command` itself stays verbatim so every usage example echoes `.weather`
     // to someone who typed `.weather`.
     const cmdKey = resolveCommand(command);
-    const text = q = args.join(' ');
+    const q = args.join(' ');
+    const text = q;
     const cmd = prefix + command;
     const levenshtein = (a = '', b = '') => {
       a = String(a);
@@ -385,14 +396,21 @@ module.exports = client = async (client, m, chatUpdate, store) => {
     const isOwner = ownerJids.includes(senderJid) || Boolean(cloneOwnerJid && senderJid === cloneOwnerJid) || Boolean(m.isDeveloper);
     const isCreator = isOwner;
     const autoblockPath = './FileData/database/setbot.json';
-    let autoblockEnabled = false;
-    try {
-      if (fs.existsSync(autoblockPath)) {
-        const autoblockData = JSON.parse(fs.readFileSync(autoblockPath, 'utf8'));
-        autoblockEnabled = Boolean(autoblockData?.enabled);
+    // Cached for 5s: the config used to be re-read from disk on every
+    // single message. A toggle still takes effect within seconds.
+    global.__autoblockCache ??= { at: 0, enabled: false };
+    let autoblockEnabled = global.__autoblockCache.enabled;
+    if (Date.now() - global.__autoblockCache.at > 5000) {
+      autoblockEnabled = false;
+      try {
+        if (fs.existsSync(autoblockPath)) {
+          const autoblockData = JSON.parse(fs.readFileSync(autoblockPath, 'utf8'));
+          autoblockEnabled = Boolean(autoblockData?.enabled);
+        }
+      } catch (error) {
+        console.error("❌ failed to read the configuration auto-blok:", error?.message || error);
       }
-    } catch (error) {
-      console.error("❌ failed to read the configuration auto-blok:", error?.message || error);
+      global.__autoblockCache = { at: Date.now(), enabled: autoblockEnabled };
     }
     const isPc = !m.isGroup;
     if (isPc && !isCreator && autoblockEnabled && !m.key?.fromMe) {
@@ -424,11 +442,6 @@ module.exports = client = async (client, m, chatUpdate, store) => {
     const {
       generateBratVideo
     } = require('./library/bratGenerator');
-    const SESSION_FILE = "./session/ai_sessions.json";
-    let sessions = fs.existsSync(SESSION_FILE) ? JSON.parse(fs.readFileSync(SESSION_FILE)) : {};
-    function saveSession() {
-      fs.writeFileSync(SESSION_FILE, JSON.stringify(sessions, null, 2));
-    }
 
     /// ───────── [ 𝖢𝗈𝗇𝗌𝗈𝗅𝖾 𝖫𝗈𝗀 ] ───────── ///
     if (isCmd) {
@@ -1259,6 +1272,20 @@ ${global.tekspromosi}
       return `${getPart('weekday')}, ${getPart('day')} - ${getPart('month')} - ${getPart('year')}`;
     })();
     /// ───────────── [ 𝖧𝖳𝖬𝖫 𝖦𝖺𝗆𝖾𝗌 ] ──────────── ///
+    /// ───────────── [ Per-command cooldown ] ──────────── ///
+    // checkCooldown/recordUsage existed but were never called, so no
+    // command had any throttle. One shared guard ahead of the game
+    // dispatch and the switch below: same user, same command, 3 seconds
+    // apart. Owners are exempt. The reply names the wait so a throttled
+    // command does not look like the bot ignored the message.
+    if (isCmd && !isOwner) {
+      const cooldown = checkCooldown(m.sender, cmdKey, 3000);
+      if (!cooldown.allowed) {
+        await reply(`Slow down — try \`.${command}\` again in ${cooldown.remainingTime}s.`);
+        return;
+      }
+      recordUsage(m.sender, cmdKey, 3000);
+    }
     // Cards rendered by WhatsApp itself from a vendored HTML payload. Kept ahead of the
     // switch so `.chess` and friends cannot collide with a plain-text case.
     /// ───────────── [ 𝖦𝖺𝗆𝖾𝗌 ] ──────────── ///
@@ -8103,8 +8130,12 @@ Koleksi Cecan from Various Negara
         {
           if (!text) return reply(`example: ${prefix + command} hai`);
           const words = text.split(" ");
-          const tempDir = path.join(process.cwd(), 'lib');
-          if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+          if (words.length > 12) return reply('Keep it to 12 words or fewer — one frame is fetched per word.');
+          const tempRoot = path.join(process.cwd(), 'lib');
+          if (!fs.existsSync(tempRoot)) fs.mkdirSync(tempRoot);
+          // One directory per run: fixed frame/output names used to collide
+          // when two people ran this at once, deleting each other's files.
+          const tempDir = fs.mkdtempSync(path.join(tempRoot, 'bratvid-'));
           const framePaths = [];
           try {
             for (let i = 0; i < words.length; i++) {
@@ -8131,14 +8162,11 @@ Koleksi Cecan from Various Negara
               packname: 'Made By Cy,bro botz',
               author: `\nDibuat By ${m.pushName}`
             });
-            framePaths.forEach(frame => {
-              if (fs.existsSync(frame)) fs.unlinkSync(frame);
-            });
-            if (fs.existsSync(fileListPath)) fs.unlinkSync(fileListPath);
-            if (fs.existsSync(outputVideoPath)) fs.unlinkSync(outputVideoPath);
           } catch (e) {
             console.error(e);
             xreply("an error occurred");
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
           }
         }
         break;
@@ -9043,15 +9071,19 @@ the bot can only capture stories while it is online, and only from contacts who 
       /// ───────────── [ 𝖩𝖺𝖽𝗂𝖻𝗈𝗍 ] ──────────── ///
       case "jadibot":
         {
+          // Jadibot clones are full WhatsApp sockets on this one machine, so
+          // starting one is owner/premium only, and any international number
+          // works now (the old check only accepted Indonesian numbers).
+          if (!isOwner && !isPremium) return reply(mess.prem);
           const targetNumber = String(text || "").trim().replace(/[^0-9]/g, "");
           if (!targetNumber) {
-            return xreply(`❌ example: .jadibot 628xxx`);
+            return xreply(`❌ example: .jadibot 233240000000`);
           }
-          if (!/^62\d{8,15}$/.test(targetNumber)) {
+          if (!/^\d{7,15}$/.test(targetNumber)) {
             return xreply(`❌ Format number invalid.
 
 use the international format without + or spaces.
-example:.jadibot 628xxx`);
+example:.jadibot 233240000000`);
           }
           const result = await jadibotManager.start(client, targetNumber, module.exports, m);
           if (result.message) await xreply(result.message);
@@ -9178,12 +9210,13 @@ ${e.message}`);
         {
           if (!isOwner) return reply(mess.owner);
           await xreply("Restarting the server...");
-          var file = await fs.readdirSync("./session");
-          var anu = await file.filter(i => i !== "creds.json");
-          for (let t of anu) {
-            await fs.unlinkSync(`./session/${t}`);
-          }
-          await process.send("reset");
+          // Never delete session files here: wiping the signal/app-state
+          // keys while keeping creds.json corrupts the session, and
+          // process.send only exists under a process manager, so the old
+          // code deleted the keys and then crashed without restarting.
+          // A plain exit lets the host (Fly, Docker, PM2) start the bot
+          // again with the session intact.
+          setTimeout(() => process.exit(0), 500);
         }
         break;
       case "clearchat":
@@ -9218,6 +9251,7 @@ ${e.message}`);
       case "listowner":
       case "listown":
         {
+          if (!isOwner) return reply(mess.owner);
           if (owners.length < 1) return xreply("no additional owners");
           let teks = `\n *乂 List of additional owners*\n`;
           for (let i of owners) {
@@ -10066,7 +10100,7 @@ please register channel first.
 └▢ *𝖬𝖾𝗌𝗌𝖺𝗀𝖾 𝗌𝖾𝗇𝗍*: 
 └▢ *${total} 𝖢𝗁𝖺𝗇𝗇𝖾𝗅* 
 └▢ *𝖲𝗍𝖺𝗍𝗎𝗌*: 𝗌𝗎𝖼𝖼𝖾𝗌𝗌! 
-└▢ *𝖣𝖾𝗅𝖺𝗒: ${global.cooldown}*
+└▢ *𝖣𝖾𝗅𝖺𝗒: ${global.delayJpm}ms*
  `);
         }
         break;
@@ -14694,9 +14728,16 @@ canvas { width: 100%; height: 100%; display: block; background: #1a2332; }
               await xreply(String(err));
             }
           }
-          if (m.text.toLowerCase() == "bot") {
-            let groupMetadata = await client.groupMetadata(m.chat).catch(e => null);
-            let member = groupMetadata.participants.map(u => u.id);
+          // "bot" used to mention every member with no checks, and crashed in
+          // DMs where groupMetadata is null. Groups only, one mention blast
+          // per group per minute, and never on a failed metadata fetch.
+          if (m.text.toLowerCase() == "bot" && m.isGroup) {
+            const botCooldown = checkCooldown(m.chat, 'bot', 60000);
+            if (botCooldown.allowed) {
+              recordUsage(m.chat, 'bot', 60000);
+              let groupMetadata = await client.groupMetadata(m.chat).catch(e => null);
+              if (groupMetadata?.participants) {
+                let member = groupMetadata.participants.map(u => u.id);
             client.relayMessage(m.chat, {
               extendedTextMessage: {
                 text: "*𝖡𝗈𝗍 𝖮𝗇𝗅𝗂𝗇𝖾 😘*",
@@ -14719,11 +14760,13 @@ canvas { width: 100%; height: 100%; display: block; background: #1a2332; }
                 }
               }
             }, {});
+              }
+            }
           }
           if (budy.startsWith('>')) {
             if (!isOwner) return reply(mess.owner);
             try {
-              let evaled = await eval(`(async () => { ${budy.slice(2)} })()`);
+              let evaled = await eval(`(async () => { ${budy.slice(1)} })()`);
               if (typeof evaled !== 'string') evaled = require('util').inspect(evaled);
               await xreply(evaled);
             } catch (err) {
@@ -14733,7 +14776,7 @@ canvas { width: 100%; height: 100%; display: block; background: #1a2332; }
           if (budy.startsWith('$')) {
             if (!isOwner) return reply(mess.owner);
             if (!text) return;
-            exec(budy.slice(2), (err, stdout) => {
+            exec(budy.slice(1), (err, stdout) => {
               if (err) return xreply(`${err}`);
               if (stdout) return xreply(stdout);
             });
@@ -14758,13 +14801,10 @@ ${util.format(err)}`,
       }
     }, {
       quoted: m
-    });
+    }).catch(() => {});
   }
 };
-let file = require.resolve(__filename);
-fs.watchFile(file, () => {
-  fs.unwatchFile(file);
-  console.log(chalk.redBright(`Update ${__filename}`));
-  delete require.cache[file];
-  require(file);
-});
+// No fs.watchFile hot-reload here: re-requiring this file did not update the
+// handler index.js already holds, so edits never took effect, and each
+// re-require duplicated the process-level error handlers above. Restart the
+// bot to reload commands.

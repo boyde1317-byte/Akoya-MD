@@ -18,7 +18,8 @@ const {
   getSizeMedia,
   fetchJson,
   sleep,
-  getTypeUrlMedia
+  getTypeUrlMedia,
+  assertSafeFetchUrl
 } = require('../library/function');
 const {
   jidNormalizedUser,
@@ -40,13 +41,25 @@ const {
   getContentType,
   getDevice
 } = require('@adiwajshing/baileys');
-let extraOwners = [];
-try {
-  extraOwners = JSON.parse(fs.readFileSync('./library/database/owner.json', 'utf8'));
-  if (!Array.isArray(extraOwners)) extraOwners = [];
-} catch {
-  extraOwners = [];
+// Additional owners are read fresh on every check, not once at require
+// time. case.js mutates the same file live (.addowner/.delowner), so a
+// cached copy here made self-mode gating stale until restart: a removed
+// owner kept getting through, and an added owner stayed blocked. The file
+// is tiny and this path only runs when the bot is in self mode, so the
+// re-read costs nothing.
+function loadExtraOwners() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync('./library/database/owner.json', 'utf8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }
+// WhatsApp media downloads are streamed whole into memory. Without a cap,
+// one huge file (the sender-controlled fileLength header cannot be
+// trusted) can OOM the process, so every download loop below aborts past
+// this many bytes.
+const MAX_MEDIA_DOWNLOAD_BYTES = 100 * 1024 * 1024;
 function normalizeOwnerJid(value = '') {
   const raw = String(value || '').trim();
   if (!raw) return '';
@@ -56,7 +69,7 @@ function normalizeOwnerJid(value = '') {
 function isConfiguredOwner(jid = '', client = null) {
   const normalized = normalizeOwnerJid(jid);
   if (!normalized) return false;
-  const owners = [global.owner, ...extraOwners];
+  const owners = [global.owner, ...loadExtraOwners()];
   if (client?.isJadibot && client?.user?.id) owners.push(client.user.id, client.jadibotOwnerJid);
   return owners.map(normalizeOwnerJid).filter(Boolean).includes(normalized);
 }
@@ -141,8 +154,8 @@ async function Solving(client, store) {
     let list = [];
     for (let i of kon) {
       list.push({
-        displayName: namaOwner,
-        vcard: 'BEGIN:VCARD\n' + 'VERSION:3.0\n' + `N:;${namaOwner};;;\n` + `FN:${namaOwner}\n` + 'ORG:null\n' + 'TITLE:\n' + `item1.TEL;waid=${i}:${i}\n` + 'item1.X-ABLabel:Ponsel\n' + `X-WA-BIZ-DESCRIPTION:${desk}\n` + `X-WA-BIZ-NAME:${namaOwner}\n` + 'END:VCARD'
+        displayName: global.namaOwner,
+        vcard: 'BEGIN:VCARD\n' + 'VERSION:3.0\n' + `N:;${global.namaOwner};;;\n` + `FN:${global.namaOwner}\n` + 'ORG:null\n' + 'TITLE:\n' + `item1.TEL;waid=${i}:${i}\n` + 'item1.X-ABLabel:Ponsel\n' + `X-WA-BIZ-DESCRIPTION:${desk}\n` + `X-WA-BIZ-NAME:${global.namaOwner}\n` + 'END:VCARD'
       });
     }
     client.sendMessage(jid, {
@@ -160,7 +173,7 @@ async function Solving(client, store) {
     for (let i of kon) {
       list.push({
         displayName: await client.getName(i + '@s.whatsapp.net'),
-        vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${await client.getName(i + '@s.whatsapp.net')}\nFN:${await client.getName(i + '@s.whatsapp.net')}\nitem1.TEL;waid=${i}:${i}\nitem1.X-ABLabel:Ponsel\nitem2.ADR:;;Indonesia;;;;\nitem2.X-ABLabel:Region\nEND:VCARD`
+        vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${await client.getName(i + '@s.whatsapp.net')}\nFN:${await client.getName(i + '@s.whatsapp.net')}\nitem1.TEL;waid=${i}:${i}\nitem1.X-ABLabel:Ponsel\nitem2.ADR:;;;;;;\nitem2.X-ABLabel:Region\nEND:VCARD`
       });
     }
     client.sendMessage(jid, {
@@ -256,8 +269,11 @@ async function Solving(client, store) {
         });
       }
     }
+    assertSafeFetchUrl(url);
     const res = await axios.get(url, {
-      responseType: 'arraybuffer'
+      responseType: 'arraybuffer',
+      timeout: 60000,
+      maxContentLength: 50 * 1024 * 1024
     });
     let mime = res.headers['content-type'];
     if (!mime || mime === 'application/octet-stream') {
@@ -316,7 +332,12 @@ async function Solving(client, store) {
     const messageType = (message.mtype || mime.split('/')[0]).replace(/Message/gi, '');
     const stream = await downloadContentFromMessage(quoted, messageType);
     const chunks = [];
-    for await (const chunk of stream) chunks.push(chunk);
+    let totalBytes = 0;
+    for await (const chunk of stream) {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_MEDIA_DOWNLOAD_BYTES) throw new Error('Media is larger than the 100 MB download cap');
+      chunks.push(chunk);
+    }
     const buffer = Buffer.concat(chunks);
     const type = await FileType.fromBuffer(buffer);
     const trueFileName = attachExtension ? `./library/database/sampah/${filename ? filename : Date.now()}.${type.ext}` : filename;
@@ -325,13 +346,22 @@ async function Solving(client, store) {
   };
   client.getFile = async (PATH, save) => {
     let res;
+    let filename;
     let data = Buffer.isBuffer(PATH) ? PATH : /^data:.*?\/.*?;base64,/i.test(PATH) ? Buffer.from(PATH.split`,`[1], 'base64') : /^https?:\/\//.test(PATH) ? await (res = await getBuffer(PATH)) : fs.existsSync(PATH) ? (filename = PATH, fs.readFileSync(PATH)) : typeof PATH === 'string' ? PATH : Buffer.alloc(0);
     let type = (await FileType.fromBuffer(data)) || {
       mime: 'application/octet-stream',
       ext: '.bin'
     };
-    filename = path.join(__filename, '../library/database/sampah/' + new Date() * 1 + '.' + type.ext);
-    if (data && save) fs.promises.writeFile(filename, data);
+    // `filename` used to be an undeclared global shared across concurrent
+    // calls, the path joined onto __filename (landing in source/library/),
+    // and the write was fire-and-forget while senders read the path at once.
+    filename = path.join(__dirname, '..', 'library', 'database', 'sampah', Date.now() + '.' + type.ext);
+    if (data && save) {
+      await fs.promises.mkdir(path.dirname(filename), {
+        recursive: true
+      });
+      await fs.promises.writeFile(filename, data);
+    }
     return {
       res,
       filename,
@@ -393,6 +423,10 @@ async function getCachedGroupMetadata(client, jid) {
   const cached = groupMetadataCache.get(jid);
   if (cached?.data && cached.expiresAt > now) return cached.data;
   if (cached?.promise) return cached.promise;
+  // A failed lookup used to refetch on the very next message: the error
+  // entry carried neither data nor a promise, so the 5s error TTL never
+  // applied. Re-throw the cached failure until it expires instead.
+  if (cached?.errorAt && now - cached.errorAt < GROUP_METADATA_ERROR_TTL) throw cached.error;
   const promise = client.groupMetadata(jid).then(data => {
     groupMetadataCache.set(jid, {
       data,
@@ -401,6 +435,8 @@ async function getCachedGroupMetadata(client, jid) {
     return data;
   }).catch(error => {
     groupMetadataCache.set(jid, {
+      error,
+      errorAt: Date.now(),
       expiresAt: Date.now() + GROUP_METADATA_ERROR_TTL
     });
     throw error;
@@ -508,7 +544,12 @@ async function Serialize(client, m, store) {
         const messageType = (m.quoted.type || mimenya.split('/')[0]).replace(/Message/gi, '');
         const stream = await downloadContentFromMessage(quotednya, messageType);
         const chunks = [];
-        for await (const chunk of stream) chunks.push(chunk);
+        let totalBytes = 0;
+        for await (const chunk of stream) {
+          totalBytes += chunk.length;
+          if (totalBytes > MAX_MEDIA_DOWNLOAD_BYTES) throw new Error('Media is larger than the 100 MB download cap');
+          chunks.push(chunk);
+        }
         const buffer = Buffer.concat(chunks);
         return buffer;
       };
@@ -530,7 +571,12 @@ async function Serialize(client, m, store) {
     const messageType = (m.type || mimenya.split('/')[0]).replace(/Message/gi, '');
     const stream = await downloadContentFromMessage(quotednya, messageType);
     const chunks = [];
-    for await (const chunk of stream) chunks.push(chunk);
+    let totalBytes = 0;
+    for await (const chunk of stream) {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_MEDIA_DOWNLOAD_BYTES) throw new Error('Media is larger than the 100 MB download cap');
+      chunks.push(chunk);
+    }
     const buffer = Buffer.concat(chunks);
     return buffer;
   };
@@ -541,8 +587,11 @@ async function Serialize(client, m, store) {
     const quoted = options?.quoted ? options.quoted : m;
     try {
       if (/^https?:\/\//.test(text)) {
+        assertSafeFetchUrl(text);
         const data = await axios.get(text, {
-          responseType: 'arraybuffer'
+          responseType: 'arraybuffer',
+          timeout: 60000,
+          maxContentLength: 50 * 1024 * 1024
         });
         const mime = data.headers['content-type'] || (await FileType.fromBuffer(data.data)).mime;
         if (/gif|image|video|audio|pdf/i.test(mime)) {

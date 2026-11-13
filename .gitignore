@@ -5,3 +5,9 @@ session/
 .env
 .fly/
 .DS_Store
+# Runtime data: the JSON database grows with real user/group records, the
+# pairing history stores full numbers, IPs and geo, and bratvid builds
+# throwaway frames here. None of it belongs in the repo.
+library/database/database.json
+library/database/pairs.json
+lib/bratvid-*/

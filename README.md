@@ -68,8 +68,10 @@ At minimum set:
   and `host` to `0.0.0.0` so the page answers at `https://<app>.fly.dev/pair`; set
   `host: '127.0.0.1'` to keep it local, and `key` to require an access key before a
   code is issued.
-- `global.pair` — optional **8-character** custom pairing code (`A-Z`, `0-9`). Leave it
-  empty and WhatsApp generates a random one; anything shorter is ignored.
+- `global.pair` — optional custom pairing code (`A-Z`, `0-9`). Leave it
+  empty and WhatsApp generates a random one; anything shorter than 8
+  characters is padded with `1`s (so `akoyamd` ships as `AKOYAMD1`), and
+  anything longer is cut to 8.
 
 Contact links are already set:
 
@@ -102,7 +104,7 @@ Notes:
 | Page refresh | keeps the same attempt — the token lives in the tab, not the URL |
 | Dropped connection | a fresh code is issued automatically (twice), the page says so |
 | `/health` | JSON status for uptime checks: `{ ok, phase, linked, jid, uptimeSeconds, session }` |
-| Access key | set `global.webPair.key` to require one before a code is issued |
+| Access key | set `WEB_PAIR_KEY` (env / Fly secret) to require one before a code is issued; `.env.example` lists every env var |
 | Visibility | the code is only ever rendered on the page: never in WhatsApp, chat logs or the terminal |
 | On Fly.io | `https://<app-name>.fly.dev/pair` — see the deployment section below |
 
