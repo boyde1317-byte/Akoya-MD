@@ -7,32 +7,14 @@ const pairTrack = require('./source/pairtrack');
 const os = require('os');
 const pino = require('pino');
 const path = require('path');
-const axios = require('axios');
 const chalk = require('chalk');
 const readline = require('readline');
-const FileType = require('file-type');
-const {
-  exec
-} = require('child_process');
-const {
-  say
-} = require('cfonts');
-const {
-  Boom
-} = require('@hapi/boom');
 const {
   default: WAConnection,
-  generateWAMessageFromContent,
-  prepareWAMessageMedia,
   useMultiFileAuthState,
-  Browsers,
   DisconnectReason,
   makeInMemoryStore,
-  makeCacheableSignalKeyStore,
-  fetchLatestWaWebVersion,
-  proto,
-  PHONENUMBER_MCC,
-  getAggregateVotesInPollMessage
+  makeCacheableSignalKeyStore
 } = require('@adiwajshing/baileys');
 
 /// ───────── [ 𝖮𝗐𝗇𝖾𝗋 𝖦𝗎𝖺𝗋𝖽 ] ───────── ///
@@ -410,8 +392,10 @@ async function markSessionLinked(client) {
         platform: (creds && creds.platform) || null
       }).catch(error => log.warn(`Pairing note skipped: ${error && error.message}`));
     }
+    return freshPairing;
   } catch (error) {
     log.error('Could not persist the linked session', error);
+    return false;
   }
 }
 
@@ -543,34 +527,10 @@ const formatUptime = (seconds = 0) => {
   const s = Math.floor(seconds % 60);
   return [d && `${d}d`, h && `${h}h`, m && `${m}m`, `${s}s`].filter(Boolean).join(' ');
 };
-async function detectVpsStatus() {
-  const response = await fetch('http://ip-api.com/json?fields=status,isp,org,hosting,proxy', {
-    signal: AbortSignal.timeout(4000)
-  });
-  const data = await response.json();
-  if (data?.status !== 'success') return {
-    status: 'Unknown',
-    provider: 'Local'
-  };
-  const provider = data.org || data.isp || 'Unknown';
-  if (data.hosting) return {
-    status: 'Legal',
-    provider
-  };
-  if (data.proxy) return {
-    status: 'Ilegal',
-    provider
-  };
-  return {
-    status: 'Unknown',
-    provider
-  };
-}
-
 /// ───────── [ 𝖡𝖾𝗇𝗇𝖾𝗋 𝖡𝗈𝗍𝗌 ] ───────── \\
 async function benners(info = {}) {
   const {
-    version = "3.3",
+    version = 'unknown',
     mode = "public"
   } = info;
 
@@ -584,14 +544,12 @@ async function benners(info = {}) {
   const uptimeText = formatUptime(os.uptime());
   const platformText = `${os.platform()} ${os.arch()}`;
 
-  // ── Deteksi VPS ──
-  let vpsInfo = {
+  // No VPS lookup: the old code phoned home to ip-api.com over plain HTTP
+  // on every connect just to label this row. The banner shows Unknown.
+  const vpsInfo = {
     status: 'Unknown',
     provider: 'Local'
   };
-  try {
-    vpsInfo = await detectVpsStatus();
-  } catch (_) {}
   const vpsLabel = vpsInfo.status === 'Legal' ? palette.ok(vpsInfo.status) : vpsInfo.status === 'Ilegal' ? palette.err(vpsInfo.status) : palette.warn(vpsInfo.status);
   const line = palette.muted('─'.repeat(30));
   console.log("");
@@ -609,6 +567,7 @@ async function benners(info = {}) {
 
   // ── Informasi Sistem ──
   const row = (label, value) => console.log(`  ${palette.muted('└▪')} ${palette.label(label.padEnd(14, ' '))}${palette.muted(':')} ${palette.text(value)}`);
+  row('Version', version);
   row('Node Version', nodeVersion);
   row('Platform', platformText);
   row('VPS Status', `${vpsLabel} ${palette.muted(`(${vpsInfo.provider})`)}`);
@@ -684,14 +643,7 @@ const {
 } = require('./source/message');
 const commandHandler = require('./case');
 const {
-  isUrl,
-  generateMessageTag,
-  getBuffer,
-  getSizeMedia,
-  fetchJson,
-  await,
-  sleep,
-  randomToken
+  sleep
 } = require('./library/function');
 const {
   welcomeBanner,
@@ -707,7 +659,9 @@ async function getWaVersion() {
   if (waVersionPromise) return waVersionPromise;
   waVersionPromise = (async () => {
     try {
-      const response = await fetch('https://raw.githubusercontent.com/WhiskeySockets/Baileys/master/src/Defaults/baileys-version.json');
+      const response = await fetch('https://raw.githubusercontent.com/WhiskeySockets/Baileys/master/src/Defaults/baileys-version.json', {
+        signal: AbortSignal.timeout(15000)
+      });
       const data = await response.json();
       if (Array.isArray(data?.version)) waVersionCache = data.version;
     } catch (error) {
@@ -944,18 +898,21 @@ async function startingBot() {
         jid: client.user?.id || null,
         name: client.user?.name || null
       });
-      await markSessionLinked(client);
+      const freshPairing = await markSessionLinked(client);
       // Notes raised while the socket was unregistered go out now.
       pairTrack.flush().catch(() => {});
       jadibotManager.setRuntime(client, commandHandler);
       jadibotManager.restore(client, commandHandler).catch(error => log.error('Jadibot restore failed', error));
-      client.sendMessage(client.user.id.split(":")[0] + "@s.whatsapp.net", {
-        text: `${`*Bot Succes Connect*`.toString()}`
-      });
-      randomToken(client);
+      // One self-note on a fresh pairing only. It used to fire on every
+      // reconnect, spamming the bot's own chat after each restart.
+      if (freshPairing) {
+        client.sendMessage(client.user.id.split(":")[0] + "@s.whatsapp.net", {
+          text: '*Bot Successfully Connected*'
+        }).catch(() => {});
+      }
 
       await benners({
-        version: "3.3",
+        version: global.versi || 'unknown',
         mode: "public"
       });
       log.ok('WhatsApp connected, system ready to use');
@@ -1110,6 +1067,9 @@ async function startingBot() {
 if (!process.env.SESSION_SELFTEST && webPair.isEnabled()) {
   const pairUrl = webPair.start();
   if (pairUrl) log.info(`Pairing page ${pairUrl}`);
+  if (pairUrl && !webPair.config.key) {
+    log.warn('Pairing page has no access key: anyone with the URL can request codes. Set WEB_PAIR_KEY to gate it.');
+  }
   const effectivePair = customPairCode();
   if (effectivePair) {
     const wished = String(global.pair || '').trim();

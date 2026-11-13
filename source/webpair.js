@@ -253,6 +253,17 @@ function pruneTokens() {
   for (const [token, rec] of tokens) {
     if (now - rec.ts > TOKEN_TTL_MS) tokens.delete(token);
   }
+  // Rate-limit buckets used to live forever: one entry per visitor, never
+  // removed. Expired buckets go with the token sweep.
+  for (const [key, rec] of buckets) {
+    if (now > rec.reset) buckets.delete(key);
+  }
+}
+
+function keysEqual(given, expected) {
+  const a = Buffer.from(String(given || ''));
+  const b = Buffer.from(String(expected || ''));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 function rateLimit(ip, bucket, max, windowMs) {
@@ -428,7 +439,7 @@ async function handleStart(req, res) {
   const body = await readJson(req);
   if (!body) return sendJson(res, 400, { error: 'Malformed request.' });
 
-  if (cfg.key && String(body.key || '') !== cfg.key) {
+  if (cfg.key && !keysEqual(body.key, cfg.key)) {
     return sendJson(res, 401, { error: 'Wrong access key.' });
   }
 
@@ -583,6 +594,10 @@ async function route(req, res) {
   if (req.method === 'GET' && pathname === '/health') {
     const snap = snapshot();
     const session = handlers.sessionInfo ? await handlers.sessionInfo().catch(() => null) : null;
+    // The session report is public (uptime checks hit this), so filesystem
+    // paths stay out of it. The linked number stays: the README documents
+    // it, and it is how a deploy is confirmed to be the right bot.
+    const { dir: _dir, dataDir: _dataDir, ...publicSession } = session || {};
     return sendJson(res, 200, {
       ok: true,
       // Which build is answering. Without this, confirming a deploy means
@@ -593,7 +608,7 @@ async function route(req, res) {
       phase: state.phase,
       linked: !!(snap.registered || state.phase === 'linked'),
       jid: (snap && snap.jid) || null,
-      session
+      session: session ? publicSession : null
     });
   }
 
@@ -604,18 +619,18 @@ async function route(req, res) {
     if (!rateLimit(clientIp(req), 'stats', 30, 10 * 60 * 1000)) {
       return sendJson(res, 429, { error: 'Too many requests.' });
     }
-    const given = Buffer.from(String(url.searchParams.get('key') || ''));
-    const expected = Buffer.from(cfg.statsKey);
-    const same = given.length === expected.length && crypto.timingSafeEqual(given, expected);
-    if (!same) return sendJson(res, 401, { error: 'Wrong key.' });
+    if (!keysEqual(url.searchParams.get('key'), cfg.statsKey)) return sendJson(res, 401, { error: 'Wrong key.' });
     return sendJson(res, 200, pairTrack.getStats());
   }
 
   if (req.method === 'GET' && pathname === '/pair/api/info') {
+    // No customCode here: the old response advertised the bot's fixed
+    // pairing code to every visitor, so the code was no secret at all.
+    // The code itself is only ever shown to a token-holding visitor who
+    // asked for it, via /pair/api/status.
     return sendJson(res, 200, {
       enabled: !!cfg.enabled,
       keyRequired: !!cfg.key,
-      customCode: cfg.customCode || '',
       phase: state.phase,
       codeWindowMs: cfg.codeWindowMs,
       serverTime: Date.now()
@@ -835,7 +850,6 @@ footer a:hover{color:var(--ink)}
         <label for="phone">WhatsApp number</label>
         <input id="phone" type="tel" inputmode="numeric" autocomplete="tel" spellcheck="false" placeholder="233240000000">
       </div>
-      <p class="hint hidden" id="code-hint"></p>
       <div class="field hidden" id="key-field">
         <label for="key">Access key</label>
         <input id="key" type="text" autocomplete="off" spellcheck="false" placeholder="from the bot owner">
@@ -930,12 +944,6 @@ footer a:hover{color:var(--ink)}
 
   fetch('/pair/api/info').then(function (r) { return r.json(); }).then(function (d) {
     if (d.keyRequired) $('key-field').classList.remove('hidden');
-    if (d.customCode) {
-      var hint = $('code-hint');
-      hint.innerHTML = 'This bot always issues the same code: <b>' + d.customCode + '</b>. '
-        + 'Type exactly those 8 characters — WhatsApp codes are exactly 8 long.';
-      hint.classList.remove('hidden');
-    }
     if (!d.enabled) {
       setPhaseLabel('pairing off', 'off');
       return;
