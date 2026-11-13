@@ -757,40 +757,71 @@ min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:1
 body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:52vh;z-index:0;pointer-events:none;
 background:radial-gradient(ellipse at 30% 0%,rgba(124,58,237,.35),transparent 62%),
 radial-gradient(ellipse at 75% 10%,rgba(167,139,250,.16),transparent 60%);filter:blur(8px)}
+.orbs{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.orb{position:absolute;border-radius:50%;will-change:transform}
+.orb-a{width:420px;height:420px;left:-120px;top:-80px;background:radial-gradient(circle,rgba(124,58,237,.26),transparent 68%);animation:drift 26s ease-in-out infinite alternate}
+.orb-b{width:360px;height:360px;right:-110px;top:34%;background:radial-gradient(circle,rgba(167,139,250,.16),transparent 68%);animation:drift 32s ease-in-out infinite alternate-reverse}
+.orb-c{width:300px;height:300px;left:38%;bottom:-150px;background:radial-gradient(circle,rgba(76,29,149,.28),transparent 68%);animation:drift 38s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(24px,-18px,0) scale(1.06)}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+nav{animation:rise .5s ease both}
+h1{animation:rise .5s .08s ease both}
+.lede{animation:rise .5s .16s ease both}
+.assurance{animation:rise .5s .22s ease both}
+.card{animation:rise .55s .28s ease both}
+footer,.footnote{animation:rise .5s .36s ease both}
 .wrap{position:relative;z-index:1;width:100%;max-width:460px}
 nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:.25rem 0 1.6rem}
 .brand{display:flex;align-items:center;gap:.6rem;font-weight:700;letter-spacing:.02em}
 .mark{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
-background:linear-gradient(150deg,var(--accent),var(--accent-deep));box-shadow:0 6px 18px -8px rgba(167,139,250,.9)}
+background:linear-gradient(150deg,var(--accent),var(--accent-deep));box-shadow:0 6px 18px -8px rgba(167,139,250,.9);
+animation:glow 4s ease-in-out infinite;transition:transform .3s ease}
+@keyframes glow{0%,100%{box-shadow:0 6px 18px -8px rgba(167,139,250,.9)}50%{box-shadow:0 6px 22px -6px rgba(167,139,250,1)}}
+.brand:hover .mark{transform:scale(1.06) rotate(-4deg)}
 .mark svg{width:16px;height:16px}
 .pill{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--mut);
 border:1px solid var(--line);padding:.3rem .7rem;border-radius:999px;white-space:nowrap}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px currentColor}
 .dot.on{background:var(--ok);color:var(--ok)}
 .dot.off{background:var(--err);color:var(--err)}
-h1{font-size:1.95rem;line-height:1.15;letter-spacing:-.02em;margin:0 0 .6rem;font-weight:750}
+h1{font-size:clamp(1.6rem,6vw,1.95rem);line-height:1.15;letter-spacing:-.02em;margin:0 0 .6rem;font-weight:750}
 h1 em{font-style:normal;color:var(--accent)}
-.lede{color:var(--mut);margin:0 0 1.4rem;max-width:40ch}
+.lede{color:var(--mut);margin:0 0 .7rem;max-width:40ch}
+.assurance{display:flex;gap:.5rem;align-items:flex-start;color:var(--dim);font-size:.82rem;line-height:1.5;margin:0 0 1.4rem;max-width:44ch}
+.assurance svg{flex:0 0 auto;margin-top:.18rem;color:var(--accent)}
 .card{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02));
 border:1px solid var(--line);border-radius:18px;padding:1.35rem;
 box-shadow:0 26px 60px -34px rgba(0,0,0,.9)}
 .steps{list-style:none;margin:0 0 1.25rem;padding:0;display:flex;flex-direction:column;gap:.7rem}
-.steps li{display:flex;gap:.7rem;align-items:flex-start;font-size:.87rem;color:#C7CFDA}
+.steps li{display:flex;gap:.7rem;align-items:flex-start;font-size:.87rem;color:#C7CFDA;
+padding:.85rem .9rem;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02);
+transition:transform .25s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease}
+.steps li:hover{transform:translateY(-1px);border-color:rgba(167,139,250,.35)}
+.steps li.active{border-color:rgba(167,139,250,.55);background:rgba(167,139,250,.08);box-shadow:0 10px 24px -18px rgba(124,58,237,.8)}
 .steps li::before{content:attr(data-n);flex:0 0 auto;width:24px;height:24px;border-radius:8px;display:grid;place-items:center;
-font-size:.75rem;font-weight:700;color:var(--accent);background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.28)}
-.steps b{color:var(--ink)}
+font-size:.75rem;font-weight:700;color:var(--accent);background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.28);
+transition:background .25s ease,color .25s ease,box-shadow .25s ease}
+.steps li.active::before{background:linear-gradient(150deg,var(--accent),var(--accent-deep));color:#140a28;border-color:transparent;
+box-shadow:0 4px 14px -6px rgba(167,139,250,.9)}
+.steps b{display:block;color:var(--ink);margin-bottom:.1rem}
 label{display:block;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 0 .45rem;font-weight:600}
 input{width:100%;padding:.9rem 1rem;font-size:1.05rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
 background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:12px;color:var(--ink);outline:none;transition:border-color .18s,box-shadow .18s}
 input::placeholder{color:#4b5563}
+input:hover{border-color:rgba(255,255,255,.18)}
+input.valid{border-color:rgba(52,211,153,.55);box-shadow:0 0 0 3px rgba(52,211,153,.12)}
 input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(167,139,250,.16)}
 .field+.field{margin-top:.9rem}
 button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid transparent;width:100%;padding:.9rem;font-weight:650}
-.cta{margin-top:1.1rem;background:linear-gradient(180deg,var(--accent),var(--accent-deep));color:#140a28;
-box-shadow:0 12px 28px -14px rgba(124,58,237,.95);transition:filter .18s,transform .1s}
-.cta:hover{filter:brightness(1.08)}
-.cta:active{transform:scale(.988)}
-.cta:disabled{filter:saturate(.35) brightness(.72);cursor:not-allowed;box-shadow:none}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cta{margin-top:1.1rem;display:flex;align-items:center;justify-content:center;gap:.6rem;
+background:linear-gradient(120deg,var(--accent),var(--accent-deep),var(--accent));background-size:200% 100%;color:#140a28;
+box-shadow:0 12px 28px -14px rgba(124,58,237,.95);transition:background-position .5s ease,filter .18s,transform .1s,box-shadow .18s}
+.cta:hover{background-position:100% 0;filter:brightness(1.08)}
+.cta:active{transform:translateY(1px) scale(.99)}
+.cta:disabled{filter:saturate(.35) brightness(.72);cursor:not-allowed;box-shadow:none;background-position:0 0}
+.cta.loading::before{content:"";width:16px;height:16px;border-radius:50%;flex:0 0 auto;
+border:2px solid rgba(20,10,40,.3);border-top-color:#140a28;animation:spin .8s linear infinite}
 .ghost{background:transparent;border-color:var(--line);color:var(--ink);margin-top:.7rem}
 .ghost:hover{border-color:#7c8899}
 .msg{margin-top:.75rem;font-size:.83rem;min-height:1.1rem;color:var(--mut)}
@@ -801,12 +832,12 @@ box-shadow:0 12px 28px -14px rgba(124,58,237,.95);transition:filter .18s,transfo
 .spinner{width:16px;height:16px;border-radius:50%;border:2px solid rgba(167,139,250,.25);border-top-color:var(--accent);animation:spin .9s linear infinite;flex:0 0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
 .sub{color:var(--mut);font-size:.85rem;margin:.15rem 0 0}
-.hint{margin:-.2rem 0 1rem;font-size:.86rem;line-height:1.5;color:var(--muted)}
-.hint b{color:var(--accent);font-family:var(--mono);letter-spacing:.06em}
 .codebox{margin:1.1rem 0 .35rem;padding:1rem .5rem;border-radius:14px;border:1px dashed rgba(167,139,250,.4);
 background:rgba(167,139,250,.07);display:flex;justify-content:center;gap:.35rem;flex-wrap:wrap}
-.digit{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.65rem;font-weight:700;letter-spacing:.06em;
-width:1.6rem;text-align:center;color:#fff;text-shadow:0 0 22px rgba(167,139,250,.55);animation:pop .35s ease both}
+.codebox.reveal{animation:codeIn .4s ease both}
+@keyframes codeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.digit{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(1.3rem,7.5vw,1.65rem);font-weight:700;letter-spacing:.06em;
+width:1.55em;text-align:center;color:#fff;text-shadow:0 0 22px rgba(167,139,250,.55);animation:pop .35s ease both}
 .digit.gap{margin-left:.5rem}
 @keyframes pop{from{opacity:0;transform:translateY(6px) scale(.92)}to{opacity:1;transform:none}}
 .howto{margin:.9rem 0 0;padding:0 0 0 1.05rem;color:#C7CFDA;font-size:.85rem}
@@ -822,29 +853,32 @@ footer a{color:var(--mut);text-decoration:none;border-bottom:1px solid rgba(255,
 footer a:hover{color:var(--ink)}
 .footnote{margin-top:1.1rem;text-align:center;font-size:.72rem;color:#4b5563;line-height:1.5}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media (max-width:380px){h1{font-size:1.6rem}.digit{font-size:1.35rem;width:1.35rem}.card{padding:1.1rem}}
+@media (max-width:420px){body{padding:1.25rem .9rem 2rem}.card{padding:1.2rem}.steps{gap:.6rem}.steps li{padding:.75rem .8rem}button{padding:1rem}}
+@media (max-width:380px){.digit{font-size:1.35rem}.card{padding:1.1rem}nav{margin-bottom:1.2rem}}
 </style>
 </head>
 <body>
+<div class="orbs" aria-hidden="true"><i class="orb orb-a"></i><i class="orb orb-b"></i><i class="orb orb-c"></i></div>
 <div class="wrap">
   <nav>
     <div class="brand">
       <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#140a28" stroke-width="2.2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M21 3v6h-6"/></svg></span>
       <span>${escapeHtml(b.name)}</span>
     </div>
-    <span class="pill"><i class="dot" id="dot"></i><span id="phase-label">checking…</span></span>
+    <span class="pill" aria-label="Server status"><i class="dot" id="dot"></i><span id="server-label">Checking…</span></span>
   </nav>
 
   <h1>Link this bot to <em>WhatsApp</em></h1>
-  <p class="lede">Enter the number, get an 8-character code, type it on the phone. No QR scanning, no terminal needed.</p>
+  <p class="lede">Connect your WhatsApp account securely and start using Akoya-MD. Generate your pairing code and link your account in just a few steps.</p>
+  <p class="assurance"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Your WhatsApp account remains under your control. Only link accounts you own or are authorized to use.</span></p>
 
   <section class="card">
     <!-- step 1 -->
     <div id="view-input">
-      <ol class="steps">
-        <li data-n="1"><span>Type the number that will become the bot, with country code and no <b>+</b> or spaces.</span></li>
-        <li data-n="2"><span>Press the button. The code appears here in a few seconds.</span></li>
-        <li data-n="3"><span>On that phone open <b>WhatsApp → Linked devices → Link a device → Link with phone number instead</b> and type the code.</span></li>
+      <ol class="steps" id="steps">
+        <li data-n="1" data-step="1" class="active"><span><b>Enter your number</b>Type the number that will become the bot, with country code and no + or spaces.</span></li>
+        <li data-n="2" data-step="2"><span><b>Generate the code</b>Press the button. Your 8-character code appears here in a few seconds.</span></li>
+        <li data-n="3" data-step="3"><span><b>Link in WhatsApp</b>On that phone open WhatsApp → Linked devices → Link a device → Link with phone number instead, and type the code.</span></li>
       </ol>
       <div class="field">
         <label for="phone">WhatsApp number</label>
@@ -854,7 +888,7 @@ footer a:hover{color:var(--ink)}
         <label for="key">Access key</label>
         <input id="key" type="text" autocomplete="off" spellcheck="false" placeholder="from the bot owner">
       </div>
-      <button class="cta" id="btn-start">Get my pairing code</button>
+      <button class="cta" id="btn-start"><span class="btn-label">Generate Pairing Code</span></button>
       <p class="msg" id="msg-input"></p>
     </div>
 
@@ -909,10 +943,37 @@ footer a:hover{color:var(--ink)}
       $(v).classList.toggle('hidden', v !== id);
     });
   }
-  function setPhaseLabel(text, kind) {
+  // The top badge reports only whether this server answers. It used to show
+  // the bot's pairing phase ("linked", "waiting"), which read as if the
+  // visitor's own account was already connected. Online/offline follows
+  // real fetches: a response means online, a failed fetch means offline.
+  // Nothing here claims the bot or the visitor's account is linked.
+  function setServerStatus(state) {
     var dot = $('dot');
-    dot.className = 'dot' + (kind ? ' ' + kind : '');
-    $('phase-label').textContent = text;
+    var label = $('server-label');
+    if (state === 'online') {
+      dot.className = 'dot on';
+      label.textContent = 'Server Online';
+    } else if (state === 'offline') {
+      dot.className = 'dot off';
+      label.textContent = 'Server Offline';
+    } else {
+      dot.className = 'dot';
+      label.textContent = 'Checking…';
+    }
+  }
+  function setBtnLabel(text, loading) {
+    var btn = $('btn-start');
+    btn.querySelector('.btn-label').textContent = text;
+    btn.classList.toggle('loading', !!loading);
+  }
+  // Visual progress only: step 2 lights up once the number looks complete.
+  // It never gates anything; the button works the same either way.
+  function setStep(n) {
+    var items = document.querySelectorAll('#steps li');
+    for (var i = 0; i < items.length; i++) {
+      items[i].classList.toggle('active', Number(items[i].getAttribute('data-step')) === n);
+    }
   }
   function say(id, text, kind) {
     var el = $(id);
@@ -933,6 +994,9 @@ footer a:hover{color:var(--ink)}
       box.appendChild(d);
     });
     box.classList.remove('hidden');
+    box.classList.remove('reveal');
+    void box.offsetWidth;
+    box.classList.add('reveal');
     $('btn-copy').classList.remove('hidden');
     $('howto').classList.remove('hidden');
     $('timer').classList.remove('hidden');
@@ -943,16 +1007,17 @@ footer a:hover{color:var(--ink)}
   }
 
   fetch('/pair/api/info').then(function (r) { return r.json(); }).then(function (d) {
+    setServerStatus('online');
     if (d.keyRequired) $('key-field').classList.remove('hidden');
-    if (!d.enabled) {
-      setPhaseLabel('pairing off', 'off');
-      return;
-    }
-    if (d.phase === 'linked') setPhaseLabel('linked', 'on');
-    else setPhaseLabel('waiting', '');
-  }).catch(function () { setPhaseLabel('offline', 'off'); });
+  }).catch(function () { setServerStatus('offline'); });
 
   $('btn-start').addEventListener('click', start);
+  $('phone').addEventListener('input', function () {
+    var num = this.value.replace(/[^0-9]/g, '');
+    var valid = num.length >= 7 && num.length <= 15;
+    this.classList.toggle('valid', valid);
+    setStep(valid ? 2 : 1);
+  });
   $('phone').addEventListener('keydown', function (e) { if (e.key === 'Enter') start(); });
   $('key').addEventListener('keydown', function (e) { if (e.key === 'Enter') start(); });
   $('btn-retry').addEventListener('click', start);
@@ -985,10 +1050,11 @@ footer a:hover{color:var(--ink)}
     say('msg-progress', '');
     say('msg-input', '');
     $('btn-start').disabled = false;
-    $('btn-start').textContent = 'Get my pairing code';
+    setBtnLabel('Generate Pairing Code', false);
+    $('phone').classList.remove('valid');
+    setStep(1);
     showView('view-input');
     lastPhase = '';
-    setPhaseLabel('waiting', '');
   });
 
   // Where this visitor came from. Read on the page so /pair?utm_source=tiktok
@@ -1011,6 +1077,10 @@ footer a:hover{color:var(--ink)}
   }
 
   function start() {
+    // One request at a time: Enter + click (or a double tap) used to be
+    // able to fire twice before the button disabled. The request itself
+    // is unchanged; this only guards re-entry.
+    if (start.busy) return;
     var raw = $('phone').value;
     var num = raw.replace(/[^0-9]/g, '');
     var key = $('key').value;
@@ -1018,36 +1088,41 @@ footer a:hover{color:var(--ink)}
       say('msg-input', 'Enter the full number with the country code, digits only. Example: 233240000000.', 'err');
       return;
     }
+    start.busy = true;
     phone = num;
     say('msg-input', '');
     var btn = $('btn-start');
     btn.disabled = true;
-    btn.textContent = 'Starting…';
+    setBtnLabel('Generating…', true);
 
     fetch('/pair/api/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone: phone, key: key, source: campaign() })
     }).then(function (r) {
+      setServerStatus('online');
       return r.json().then(function (d) { return { ok: r.ok, body: d }; });
     }).then(function (res) {
       if (!res.ok) {
         // socket not up yet: retry once quietly, then report
         if (res.body && /still starting/i.test(res.body.error || '') && !start.waited) {
           start.waited = true;
+          start.busy = false;
           setTimeout(start, 4000);
           return;
         }
+        start.busy = false;
         btn.disabled = false;
-        btn.textContent = 'Get my pairing code';
+        setBtnLabel('Generate Pairing Code', false);
         say('msg-input', (res.body && res.body.error) || 'Something went wrong. Try again.', 'err');
         return;
       }
       start.waited = false;
+      start.busy = false;
       token = res.body.token;
       try { sessionStorage.setItem(LINKED_KEY, token); } catch (e) { /* private mode */ }
       showView('view-progress');
-      setPhaseLabel('pairing', '');
+      btn.classList.remove('loading');
       $('spin').style.display = 'block';
       $('prog-title').textContent = 'Talking to WhatsApp…';
       $('prog-sub').textContent = 'The code appears here in a few seconds.';
@@ -1055,8 +1130,10 @@ footer a:hover{color:var(--ink)}
       $('btn-retry').classList.add('hidden');
       poll();
     }).catch(function () {
+      start.busy = false;
+      setServerStatus('offline');
       btn.disabled = false;
-      btn.textContent = 'Get my pairing code';
+      setBtnLabel('Generate Pairing Code', false);
       say('msg-input', 'Network error. Check the connection and try again.', 'err');
     });
   }
@@ -1073,7 +1150,6 @@ footer a:hover{color:var(--ink)}
         }
       }
       lastPhase = 'code';
-      setPhaseLabel('code is live', '');
       $('spin').style.display = 'none';
       $('btn-retry').classList.add('hidden');
       startTimer(data.secondsLeft);
@@ -1084,7 +1160,6 @@ footer a:hover{color:var(--ink)}
       lastPhase = 'linked';
       $('spin').style.display = 'none';
       showView('view-success');
-      setPhaseLabel('linked', 'on');
       var name = (data.linked && data.linked.name) || phone;
       $('who').textContent = name;
       $('jid').textContent = (data.linked && data.linked.jid) || '';
@@ -1098,7 +1173,6 @@ footer a:hover{color:var(--ink)}
       $('howto').classList.add('hidden');
       $('timer').classList.add('hidden');
       $('btn-retry').classList.remove('hidden');
-      setPhaseLabel('needs a code', 'off');
       try { sessionStorage.removeItem(LINKED_KEY); } catch (e) { /* ignore */ }
       $('prog-title').textContent = 'That code was not accepted';
       $('prog-sub').textContent = 'A fresh code is requested automatically — or press the button.';
@@ -1114,7 +1188,6 @@ footer a:hover{color:var(--ink)}
       $('howto').classList.add('hidden');
       $('timer').classList.add('hidden');
       $('btn-retry').classList.remove('hidden');
-      setPhaseLabel(phase === 'busy' ? 'busy' : 'needs a code', 'off');
       try { sessionStorage.removeItem(LINKED_KEY); } catch (e) { /* ignore */ }
       var messages = {
         expired: 'This session expired. Get a new code.',
@@ -1134,7 +1207,6 @@ footer a:hover{color:var(--ink)}
       $('prog-sub').textContent = 'This usually takes 5–15 seconds.';
     }
     lastPhase = phase;
-    setPhaseLabel('starting', '');
   }
 
   function startTimer(seconds) {
@@ -1161,12 +1233,14 @@ footer a:hover{color:var(--ink)}
     fetch('/pair/api/status?token=' + encodeURIComponent(token))
       .then(function (r) { return r.json(); })
       .then(function (data) {
+        setServerStatus('online');
         apply(data);
         if (data.phase !== 'linked' && data.phase !== 'expired' && data.phase !== 'expired_code' && data.phase !== 'busy') {
           pollTimer = setTimeout(poll, 2500);
         }
       })
       .catch(function () {
+        setServerStatus('offline');
         pollTimer = setTimeout(poll, 4000);
       });
   }
